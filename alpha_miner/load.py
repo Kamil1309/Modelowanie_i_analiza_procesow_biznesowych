@@ -6,7 +6,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 image_dir = os.path.join(main_dir, 'images')
 
-def load_image( name ):
+def load_image( name, pos = (0,0) ):
     """ 
     Function for loading images
 
@@ -21,7 +21,7 @@ def load_image( name ):
         raise SystemExit(str(geterror()))
     image = image.convert_alpha() 
     
-    return image, image.get_rect()
+    return image, image.get_rect(center = pos)
 
 
 #font_dir = os.path.join(main_dir, 'fonts') # idk why doesn't work

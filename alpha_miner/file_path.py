@@ -5,6 +5,7 @@ def get_file_path():
   root = tk.Tk()
   root.withdraw()
 
-  file_path=filedialog.askopenfilename()
+  file_path = filedialog.askopenfilename()
 
+  
   return file_path

@@ -20,6 +20,7 @@ class Button(pg.sprite.Sprite):
         self.img_dir = os.path.join(folder_name, img_name )
         self.image_down = load_image( self.img_dir + "_down.png" )[0]
         self.image_up = load_image( self.img_dir + "_up.png" )[0]
+        self.pos = pos
 
         self.image = self.image_up
         self.rect = self.image.get_rect( center = pos )
@@ -30,8 +31,10 @@ class Button(pg.sprite.Sprite):
         "update button image"
         if self.pushed == 0:
             self.image = self.image_up
+            self.rect = self.image.get_rect( center = self.pos )
         elif self.pushed == 1:
             self.image = self.image_down
+            self.rect = self.image.get_rect( center = self.pos )
 
     def push( self ):
         self.pushed = 1

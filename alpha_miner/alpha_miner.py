@@ -71,10 +71,15 @@ class Alpha_Miner():
         self.bg.blit( self.XES_text, self.XES_text_rect ) #Blit text on background
         self.double_path = False
         self.w_path = False
+        self.n_path = False
 
-        self.wrong_path, self.wrong_path_rect = make_text( text= "it's not XLS path :(", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
+        self.wrong_path, self.wrong_path_rect = make_text( text= "it's not XES path :(", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
                                                         , size= 45, pos= (self.window_rect.width* 4/10, self.window_rect.height/5)\
                                                         , text_color= (242, 0, 0), text_background_color= (21,215,152))
+        self.no_path, self.no_path_rect = make_text( text= "first select the path", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
+                                                        , size= 45, pos= (self.window_rect.width* 4/10, self.window_rect.height/5)\
+                                                        , text_color= (242, 0, 0), text_background_color= (21,215,152))
+        
         #Initialize clock
         self.clock = pg.time.Clock()
 
@@ -110,6 +115,7 @@ class Alpha_Miner():
                         if len(self.path) > 3:
                             if (self.path[-3:-1]+self.path[-1]) == "xes":
                                 self.w_path = False
+                                self.n_path = False
                                 self.double_path = False
                                 self.XES_path, self.XES_path_rect = make_text( text= self.path, font_name= 'calibri-font-sv\Calibri Bold.ttf'\
                                                             , size= 35, pos= (self.window_rect.width* 4/10, self.window_rect.height/5)\
@@ -134,22 +140,29 @@ class Alpha_Miner():
                             self.w_path = True
                             self.path = ""
                     if button_name == "start_am":
-                        alpha_miner_algorithm = Alpha_Miner_Algorithm(self.window)
-                        alpha_miner_algorithm.run()
-                        del alpha_miner_algorithm
+                        if self.path != "":
+                            alpha_miner_algorithm = Alpha_Miner_Algorithm(self.window, self.path)
+                            alpha_miner_algorithm.run()
+                            del alpha_miner_algorithm
+                        else:
+                            self.n_path = True
+                            
                     if button_name == "exit":
                         return True
                     self.buttons[button_name][1] = False
 
 
-            if self.w_path == False:
+            if self.w_path == False and self.n_path == False :
                 if self.double_path:
                     self.window.blit( self.XES_path1, self.XES_path1_rect )#Blit "XES path" text on background
                     self.window.blit( self.XES_path2, self.XES_path2_rect )#Blit "XES path" text on background
                 else:
                     self.window.blit( self.XES_path, self.XES_path_rect )#Blit "XES path" text on background
             else:
-                self.window.blit( self.wrong_path, self.wrong_path_rect )#Blit "XES path" text on background
+                if self.w_path == True:
+                    self.window.blit( self.wrong_path, self.wrong_path_rect )#Blit "XES path" text on background
+                elif self.n_path == True:
+                    self.window.blit( self.no_path, self.no_path_rect )#Blit "XES path" text on background
 
             pg.display.flip()
 

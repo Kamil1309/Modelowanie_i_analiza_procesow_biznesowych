@@ -1,1 +1,1 @@
--process-mining-book-examples\Chapter_1\running-example.xes')
+    alpha_miner.run()

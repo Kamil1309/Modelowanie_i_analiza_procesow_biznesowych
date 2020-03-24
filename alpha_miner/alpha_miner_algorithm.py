@@ -32,6 +32,65 @@ def make_log_look(data, pos, color, left=False):
         
     return log_text, log_text_rect
 
+def BPMN_add_row(BPMN):
+    BPMN.append( [ [] for i in range(0, len( BPMN[ len(BPMN)-1 ] ) ) ] )
+    return BPMN
+
+def BPMN_add_column(BPMN):
+    if len(BPMN) > 0:
+        for i in range(0, len(BPMN)):
+            BPMN[i].append([])
+    else:
+        BPMN.append([[]])
+    return BPMN
+
+def BPMN_draw_line( surf, start_pos, end_pos, arrow = False, arrow_s_r = None, size = 3 ):
+    if arrow:
+        pg.draw.line( surf, (72, 144, 220), start_pos, end_pos, 3 )
+        arrow_s_r[1].right = end_pos[0]
+        arrow_s_r[1].top = end_pos[1] - arrow_s_r[1].height/2 + 1
+        surf.blit( arrow_s_r[0], arrow_s_r[1] )
+    else:
+        pg.draw.line(surf, (72, 144, 220), start_pos, end_pos, size)
+
+def create_activity_surf( name ):
+    # load corners
+    top_left_corner, top_left_corner_rect = load_image("top_left_corner.png") 
+    top_right_corner, top_right_corner_rect = load_image("top_right_corner.png")
+    bottom_right_corner, bottom_right_corner_rect = load_image("bottom_right_corner.png")
+    bottom_left_corner, bottom_left_corner_rect = load_image("bottom_left_corner.png")
+
+    #create text
+    text, text_rect = make_text( text= name, font_name= 'calibri-font-sv\Calibri Bold.ttf'\
+                                , size= 20, pos= (0,0)\
+                                , text_color= (255, 180, 69), text_background_color= (0, 0, 0))
+    
+    #create activity surface
+    activity_surf = pg.Surface( (text_rect.width + 40, text_rect.height + 50) ).convert()
+    activity_surf.fill( (0, 0, 0) )
+    activity_surf_rect = activity_surf.get_rect( topleft = (0,0) )
+
+    #set corners position
+    top_left_corner_rect.topleft = (0, 0)
+    top_right_corner_rect.topright = (activity_surf_rect.width, 0)
+    bottom_right_corner_rect.bottomright = (activity_surf_rect.width, activity_surf_rect.height)
+    bottom_left_corner_rect.bottomleft = (0, activity_surf_rect.height)
+    #set text position
+    text_rect.center = activity_surf_rect.center
+
+    activity_surf.blit( top_left_corner, top_left_corner_rect )
+    activity_surf.blit( top_right_corner, top_right_corner_rect )
+    activity_surf.blit( bottom_right_corner, bottom_right_corner_rect )
+    activity_surf.blit( bottom_left_corner, bottom_left_corner_rect )
+
+    BPMN_draw_line(activity_surf, (top_left_corner_rect.right, top_left_corner_rect.top + 2), ( top_right_corner_rect.left, top_right_corner_rect.top + 2), False, None, 5 )
+    BPMN_draw_line(activity_surf, (top_right_corner_rect.right - 3, top_right_corner_rect.bottom), ( bottom_right_corner_rect.right - 3, bottom_right_corner_rect.top), False, None, 5 )
+    BPMN_draw_line(activity_surf, (bottom_right_corner_rect.left, bottom_right_corner_rect.bottom - 3), ( bottom_left_corner_rect.right, bottom_left_corner_rect.bottom - 3), False, None, 5 )
+    BPMN_draw_line(activity_surf, (bottom_left_corner_rect.left + 2, bottom_left_corner_rect.top), ( top_left_corner_rect.left + 2, top_left_corner_rect.bottom), False, None, 5 )
+
+    activity_surf.blit( text, text_rect )
+
+    return activity_surf, activity_surf_rect
 
 class Alpha_Miner_Algorithm():
     """Alpha Miner Algorithm"""
@@ -87,7 +146,7 @@ class Alpha_Miner_Algorithm():
             #Create 
             log = xes_import_factory.apply(self.path)
             self.L = [[],[]] # L[0] - real names of whole traces, L[1] - new names of whole traces
-            self.diff_names = [[],[]] # L[0] - surf of real names, L[1] - surf of new names
+            self.diff_names = [[],[],[],[]] # L[0] - surf of real names, L[1] - surf of new names
             for trace_num, trace in enumerate(log):
                 self.L[0].append([]) # New trace with real names
                 self.L[1].append([]) # New trace with new names
@@ -97,6 +156,8 @@ class Alpha_Miner_Algorithm():
                     if event["concept:name"] not in self.diff_names[0]:
                         self.diff_names[0].append(event["concept:name"])
                         self.diff_names[1].append(str(chr(97 + len(self.diff_names[0])-1 )))
+                        self.diff_names[2].append(event["concept:name"])
+                        self.diff_names[3].append(str(chr(97 + len(self.diff_names[0])-1 )))
 
             self.TL = self.diff_names[1][:]#Creating Tl set of all tasks in the log L (use in phase 1)
             for trace_num in range(0, len(self.L[0]) ):
@@ -407,20 +468,112 @@ class Alpha_Miner_Algorithm():
             self.initialized = 2
 
         elif self.current_phase == 3:#####################################
-            #Create bpmn
-            # self.BPMN = []
-            # if 
+            #Import graphics
+            start_bpmn, start_bpmn_rect = load_image("start.png")
+            end_bpmn, end_bpmn_rect = load_image("end.png")
+            exclusive_bpmn, exclusive_bpmn_rect = load_image("exclusive.png")
+            parallel_bpmn, parallel_bpmn_rect = load_image("parallel.png")
+            arrow_right, arrow_right_rect = load_image("arrow_right.png")
+            #Create bpmn # BPMN is a table, field with number i, j is table [ surface, surface_rect ]
+            self.BPMN_connections = [[],[]]
+            self.BPMN = []
+            
+            #create activities surfaces
+            activities_surfaces = [[],[]] # first table are letters, second are surfaces with rects
+            activities_surfaces[0] = self.diff_names[3][:]
+
+            for i in self.diff_names:
+                print(i)
+
+            for name in self.diff_names[2]:
+                activities_surfaces[1].append([])
+                a_s, a_s_rect = create_activity_surf( name )
+                activities_surfaces[1][ len(activities_surfaces[1])-1 ].append( a_s )
+                activities_surfaces[1][ len(activities_surfaces[1])-1 ].append( a_s_rect )
+
+            #creating start event
+            if len(self.TI) == 2: 
+                self.BPMN = BPMN_add_column( self.BPMN )
+                self.BPMN[0][0].append(start_bpmn)#adding start event
+                self.BPMN[0][0].append(start_bpmn_rect)
+                self.BPMN_connections[0].append([0,-1])#adding connection from 'nowhere' into start
+                self.BPMN_connections[1].append([0,0])
+
+                self.BPMN = BPMN_add_column( self.BPMN )
+                self.BPMN[0][1].append(exclusive_bpmn)#adding exclusive gateway
+                self.BPMN[0][1].append(exclusive_bpmn_rect)
+
+                self.BPMN = BPMN_add_column( self.BPMN )
+                self.BPMN = BPMN_add_row( self.BPMN )
+                self.BPMN[0][2].append( activities_surfaces[1][activities_surfaces[0].index( self.TI[0] )][0] )#adding first activity
+                self.BPMN[0][2].append( activities_surfaces[1][activities_surfaces[0].index( self.TI[0] )][1] )
+                self.BPMN_connections[0].append([0,1])#adding connection from 'end' into 'nowhere'
+                self.BPMN_connections[1].append([0,2])
+
+                self.BPMN[1][2].append( activities_surfaces[1][activities_surfaces[0].index( self.TI[1] )][0] )#adding first activity
+                self.BPMN[1][2].append( activities_surfaces[1][activities_surfaces[0].index( self.TI[1] )][1] )
+                self.BPMN_connections[0].append([0,1])#adding connection from 'end' into 'nowhere'
+                self.BPMN_connections[1].append([1,2])
+            else:
+                self.BPMN = BPMN_add_column( self.BPMN )
+                self.BPMN[0][0].append(start_bpmn)#adding start event
+                self.BPMN[0][0].append(start_bpmn_rect)
+                self.BPMN_connections[0].append([0,-1])#adding connection from 'nowhere' into start
+                self.BPMN_connections[1].append([0,0])
+
+                self.BPMN = BPMN_add_column( self.BPMN )
+                self.BPMN[0][1].append( activities_surfaces[1][activities_surfaces[0].index( self.TI[0] )][0] )#adding first activity
+                self.BPMN[0][1].append( activities_surfaces[1][activities_surfaces[0].index( self.TI[0] )][1] )
+                self.BPMN_connections[0].append([0,0])#adding connection from 'end' into 'nowhere'
+                self.BPMN_connections[1].append([0,1])
+
+            #creating end event
+            self.BPMN = BPMN_add_column( self.BPMN )
+            self.BPMN = BPMN_add_column( self.BPMN )
+            for end_event_num in range(0, len(self.TO) ):
+                if len(self.BPMN )-1 < end_event_num:
+                    self.BPMN = BPMN_add_row( self.BPMN )
+                self.BPMN[end_event_num][len(self.BPMN[end_event_num])-2].append( activities_surfaces[1][activities_surfaces[0].index( self.TO[end_event_num] )][0] )#adding first activity
+                self.BPMN[end_event_num][len(self.BPMN[end_event_num])-2].append( activities_surfaces[1][activities_surfaces[0].index( self.TO[end_event_num] )][1] )
+
+                self.BPMN[end_event_num][len(self.BPMN[end_event_num])-1].append( end_bpmn )#adding first activity
+                self.BPMN[end_event_num][len(self.BPMN[end_event_num])-1].append( end_bpmn_rect )
+
+                self.BPMN_connections[0].append([end_event_num, len(self.BPMN[end_event_num])-2])#adding connection from 'end' into 'nowhere'
+                self.BPMN_connections[1].append([end_event_num, len(self.BPMN[end_event_num])-1])
+            
 
             #Create picture
             self.bg3 = pg.Surface( self.window.get_size() ).convert()
             self.bg3.fill( (0, 0, 0) )
             self.bg3_rect = self.bg3.get_rect( topleft = (0,0) )
 
-            self.text3, self.text_rect3 = make_text( text= "3", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
-                                                    , size= 35, pos= (self.window_rect.centerx,self.window_rect.centery)\
-                                                    , text_color= (72, 144, 220), text_background_color= (0, 0, 0))
-        
-            self.bg3.blit( self.text3, self.text_rect3 )
+            self.bg3.blit( self.main_text, self.main_text_rect )
+
+            #bliting connections
+            for i in range(0, len(self.BPMN_connections[0]) ):
+                if self.BPMN_connections[0][i][1] != -1:
+                    start_pos = ( self.window_rect.width * (self.BPMN_connections[0][i][1] * 2 + 1)/(len(self.BPMN[0]) * 2), self.window_rect.height * (self.BPMN_connections[0][i][0] * 2 + 1)/(len(self.BPMN) * 2)  )
+                    start_surf_rect = self.BPMN[ self.BPMN_connections[0][i][0] ][ self.BPMN_connections[0][i][1] ][1]
+                    start_pos = (start_pos[0] + start_surf_rect.width/2 , start_pos[1])
+                else:
+                    start_pos = ( self.window_rect.width * 1/(len(self.BPMN[0]) * 4), self.window_rect.height * (self.BPMN_connections[0][i][0] * 2 + 1)/(len(self.BPMN) * 2)  )
+                
+                if self.BPMN_connections[1][i][1] != 1000:
+                    end_pos = ( self.window_rect.width * (self.BPMN_connections[1][i][1] * 2 + 1)/(len(self.BPMN[0]) * 2), self.window_rect.height * (self.BPMN_connections[1][i][0] * 2 + 1)/(len(self.BPMN) * 2)  )
+                    end_surf_rect = self.BPMN[ self.BPMN_connections[1][i][0] ][ self.BPMN_connections[1][i][1] ][1]
+                    end_pos = (end_pos[0] - end_surf_rect.width/2 , end_pos[1])
+                else:
+                    end_pos = ( self.window_rect.width * ((len(self.BPMN[1]) * 2) - 1)/(len(self.BPMN[1]) * 2), self.window_rect.height * (self.BPMN_connections[1][i][0] * 2 + 1)/(len(self.BPMN) * 2)  )
+
+                BPMN_draw_line(self.bg3, start_pos, end_pos, True, [arrow_right, arrow_right_rect])
+
+            #bliting activities, events ....
+            for i in range(0, len(self.BPMN)):
+                for j in range(0, len(self.BPMN[i])):
+                    if len(self.BPMN[i][j]) == 2:
+                        self.BPMN[i][j][1].center = ( self.window_rect.width * (2*j+1) / (2*len(self.BPMN[i]) ), self.window_rect.height * (2*i+1) / (2*len(self.BPMN) ) )
+                        self.bg3.blit( self.BPMN[i][j][0], self.BPMN[i][j][1] )
 
             self.initialized = 3
 

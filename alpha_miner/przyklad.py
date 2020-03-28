@@ -13,11 +13,5 @@
 # print()
 # print(log[0][1])
 
-tab = [[1,2,3,4,5],[1,2,3,4,5]]
-tab2= [120, 151]
-
-for i in range(0,len(tab)):
+for i in range(-5, -4):
     print(i)
-    for j in range(0, len(tab[i])):
-        print(tab[i][j], end="")
-    print()

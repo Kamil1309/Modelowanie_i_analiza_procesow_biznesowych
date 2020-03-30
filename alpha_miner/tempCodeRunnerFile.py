@@ -1,1 +1,1 @@
-    alpha_miner.run()
+_miner.run()

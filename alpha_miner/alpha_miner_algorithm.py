@@ -42,11 +42,6 @@ class Alpha_Miner_Algorithm():
         self.window_rect = self.window.get_rect() 
         self.path = path
 
-        #Create background surface
-        # self.bg = pg.Surface( self.window.get_size() ).convert()
-        # self.bg.fill( (0, 0, 0) )
-        # self.bg_rect = self.bg.get_rect( topleft = (0,0) )
-
         #Create menu images
         img_folder = "alg_buttons"
         self.buttons = {
@@ -75,12 +70,16 @@ class Alpha_Miner_Algorithm():
         self.initialized = -1
         self.current_phase = 0
 
-        self.phase_range = (0, 4)
+        self.phase_range = (0, 3)
         #Initialize clock
         self.clock = pg.time.Clock()
 
         self.click_down = False
         self.click_up = False
+
+        #init last x mouse pos
+        self.mx_now =0
+        self.mx_last = 0
 
     def initialization(self):
         if self.current_phase == 0:#####################################
@@ -108,27 +107,27 @@ class Alpha_Miner_Algorithm():
 
             for name_num in range(0, len(self.diff_names[0])):
                 org_name, org_name_rect = make_text( text= self.diff_names[0][name_num], font_name= 'calibri-font-sv\Calibri Bold.ttf'\
-                                                        , size= 25, pos= (self.window_rect.width*3/8, self.window_rect.height*(6+name_num)/25)\
+                                                        , size= 25, pos= (self.window_rect.width*5/16, self.window_rect.height*(6+name_num)/22)\
                                                         , text_color= (72, 144, 220), text_background_color= (0, 0, 0))
                 new_name, new_name_rect = make_text( text= self.diff_names[1][name_num], font_name= 'calibri-font-sv\Calibri Bold.ttf'\
-                                                        , size= 25, pos= (self.window_rect.width*6/8, self.window_rect.height*(6+name_num)/25)\
+                                                        , size= 25, pos= (self.window_rect.width*11/16, self.window_rect.height*(6+name_num)/22)\
                                                         , text_color= (72, 144, 220), text_background_color= (0, 0, 0))
                 self.diff_names[0][name_num] = [org_name, org_name_rect]
                 self.diff_names[1][name_num] = [new_name, new_name_rect]
 
             org_name_text, org_name_text_rect = make_text( text= "Original name", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
-                                                        , size= 25, pos= (self.window_rect.width*3/8, self.window_rect.height*4/25)\
+                                                        , size= 25, pos= (self.window_rect.width*5/16, self.window_rect.height*4/22)\
                                                         , text_color= (255, 180, 69), text_background_color= (0, 0, 0))
             new_name_text, new_name_text_rect = make_text( text= "New name", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
-                                                        , size= 25, pos= (self.window_rect.width*6/8, self.window_rect.height*4/25)\
+                                                        , size= 25, pos= (self.window_rect.width*11/16, self.window_rect.height*4/22)\
                                                         , text_color= (255, 180, 69), text_background_color= (0, 0, 0))
             #Create picture
             self.bg0 = pg.Surface( self.window.get_size() ).convert()
             self.bg0.fill( (0, 0, 0) )
             self.bg0_rect = self.bg0.get_rect( topleft = (0,0) )
 
-            pg.draw.line(self.bg0, (255,134,69), (self.window_rect.width*5/8, self.window_rect.height*5/25),\
-                        (self.window_rect.width*5/8, self.window_rect.height*(6 + len(self.diff_names[0]))/25),2)
+            pg.draw.line(self.bg0, (255,134,69), (self.window_rect.width*1/2, self.window_rect.height*5/22),\
+                        (self.window_rect.width*1/2, self.window_rect.height*(6 + len(self.diff_names[0]))/22),2)
 
             self.bg0.blit( self.main_text, self.main_text_rect )
             self.bg0.blit( org_name_text, org_name_text_rect )
@@ -137,8 +136,8 @@ class Alpha_Miner_Algorithm():
                 self.bg0.blit( self.diff_names[0][i][0], self.diff_names[0][i][1] )
                 self.bg0.blit( self.diff_names[1][i][0], self.diff_names[1][i][1] )
                 if i != 0:
-                    pg.draw.line(self.bg0, (255,199,115), (self.window_rect.width*2/8, self.window_rect.height*(11+2*i)/50),\
-                                (self.window_rect.width*7/8, self.window_rect.height*(11+2*i)/50 ),1)
+                    pg.draw.line(self.bg0, (255,199,115), (self.window_rect.width*3/16, self.window_rect.height*(11+2*i)/44),\
+                                (self.window_rect.width*13/16, self.window_rect.height*(11+2*i)/44 ),1)
             self.initialized = 0
 
         elif self.current_phase == 1:#####################################
@@ -412,35 +411,27 @@ class Alpha_Miner_Algorithm():
     
             self.bpmn = BPMN( [ self.diff_names[2][:], self.diff_names[3][:] ] )
 
-            self.bpmn.run(self.TI, self.TO, self.YLa, self.YLb, self.YLc)
+            width, height = self.bpmn.run(self.TI, self.TO, self.YLa, self.YLb, self.YLc)
             
             #Create picture
+            #surf for chart
+            self.bg3_chart = pg.Surface( (self.window.get_size()[0]* width/7 , self.window.get_size()[1]-100) ).convert()
+            self.bg3_chart.fill( (0, 0, 0) )
+            self.bg3_chart_rect = self.bg3_chart.get_rect( topleft = (0,55) )
+
+            #main surf
             self.bg3 = pg.Surface( self.window.get_size() ).convert()
             self.bg3.fill( (0, 0, 0) )
             self.bg3_rect = self.bg3.get_rect( topleft = (0,0) )
 
             self.bg3.blit( self.main_text, self.main_text_rect )
 
-            self.bpmn.draw_on( self.bg3 )
+            self.bpmn.draw_on( self.bg3_chart )
+            self.bg3.blit(self.bg3_chart, self.bg3_chart_rect)
 
             self.initialized = 3
-
-        elif self.current_phase == 4:#####################################
-            #Create picture
-            self.bg4 = pg.Surface( self.window.get_size() ).convert()
-            self.bg4.fill( (0, 0, 0) )
-            self.bg4_rect = self.bg4.get_rect( topleft = (0,0) )
-
-            self.text4, self.text_rect4 = make_text( text= "4", font_name= 'calibri-font-sv\Calibri Bold.ttf'\
-                                                    , size= 35, pos= (self.window_rect.centerx,self.window_rect.centery)\
-                                                    , text_color= (72, 144, 220), text_background_color= (0, 0, 0))
-            self.bg4.blit( self.text4, self.text_rect4 )
-
-            self.initialized = 1
-
-            self.initialized = 4
     
-    def display(self, ):
+    def display(self, absolute_move_x):
         if self.current_phase == 0:
             self.window.blit( self.bg0, self.bg0_rect )
         elif self.current_phase == 1:
@@ -448,20 +439,37 @@ class Alpha_Miner_Algorithm():
         elif self.current_phase == 2:
             self.window.blit( self.bg2, self.bg2_rect )
         elif self.current_phase == 3:
+            if absolute_move_x > 0:# move screen on left
+                if self.bg3_chart_rect.left < self.bg3_rect.left:
+                    
+                    self.bg3_chart_rect.x += absolute_move_x
+            elif absolute_move_x < 0:# move screen on right
+                if self.bg3_chart_rect.right > self.bg3_rect.right:
+                    self.bg3_chart_rect.x += absolute_move_x
+            self.bg3.blit( self.bg3_chart, self.bg3_chart_rect )
             self.window.blit( self.bg3, self.bg3_rect )
-        elif self.current_phase == 4:
-            self.window.blit( self.bg4, self.bg4_rect )
 
     def run(self):
         """Main loop"""
 
         while not self.handle_events():
+
             mx, my = pg.mouse.get_pos()
 
             if self.current_phase > self.initialized:
                 self.initialization()
 
-            self.display()
+            if self.click_down:
+                self.mx_now = mx
+
+                self.display( self.mx_now - self.mx_last )
+            else:
+                self.display( 0 )
+                
+            if self.click_down:
+                self.mx_last = self.mx_now
+            else:
+                self.mx_last = mx
 
             self.allsprites.update()
             self.allsprites.draw( self.window )

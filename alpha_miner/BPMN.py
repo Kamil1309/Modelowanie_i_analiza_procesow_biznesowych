@@ -5,8 +5,485 @@ from pygame.locals import *
 
 # import sys
 # import os
-
+import math
 from load import make_text, load_image
+
+def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
+    arrow_right, arrow_right_rect = load_image("arrow_right.png")
+    arrow_left, arrow_left_rect = load_image("arrow_left.png")
+    arrow_down, arrow_down_rect = load_image("arrow_down.png")
+    arrow_up, arrow_up_rect = load_image("arrow_up.png")
+
+    size = 3
+    #arc_color = (72, 144, 220)
+    
+    arrow_img = arrow_right
+    arrow_rect = arrow_right.get_rect()
+    mid_point_rect = arrow_right.get_rect()
+
+    empty_surface = pg.Surface((30,30))
+    empty_surface.fill( (0, 0, 0) )
+    empty_surface_rect = empty_surface.get_rect()
+
+    elipse_x = 0
+    elipse_y = 0
+
+    dist_x = end_pos[0] - start_pos[0]
+    dist_y = end_pos[1] - start_pos[1]
+    # the comments assume that the starting point is in the center of the coordinate system
+    if start_pos[1] == end_pos[1]: # when start and end are in same plane x
+        mid_point_rect.topleft = ( dist_x/2 + start_pos[0], start_pos[1])
+        elipse_w = abs(dist_x)
+        elipse_h = 80
+        elipse_y = start_pos[1] - elipse_h/2
+        if dist_x > 0:# right side of 0,0
+            elipse_x = start_pos[0]
+            elipse_start_angle = 0
+            elipse_end_angle = math.pi
+
+            arrow_img = arrow_down
+            rotate = elipse_w/elipse_h * 10
+            if rotate > 30:
+                rotate = 30
+            arrow_img = pg.transform.rotate(arrow_img, rotate)
+            arrow_down_rect.centerx = end_pos[0]
+            arrow_down_rect.bottom = end_pos[1]
+            arrow_down_rect.move_ip( -rotate * 2/8, -2)
+            arrow_rect = arrow_down_rect
+        elif dist_x < 0:# left side of 0,0
+            elipse_x = end_pos[0]
+            elipse_start_angle = math.pi
+            elipse_end_angle = 0
+
+            arrow_img = arrow_up
+            rotate = elipse_w/elipse_h * 10
+            if rotate > 30:
+                rotate = 30
+            arrow_img = pg.transform.rotate(arrow_img, rotate)
+            arrow_up_rect.centerx = end_pos[0]
+            arrow_up_rect.top = end_pos[1]
+            arrow_up_rect.move_ip( rotate /5, -rotate/4)
+            arrow_rect = arrow_up_rect
+
+    elif start_pos[0] == end_pos[0]:# when start and end are in same plane y
+        mid_point_rect.topleft = ( start_pos[0], dist_y/2 + start_pos[1])
+        elipse_w = 80
+        elipse_h = abs(dist_y)
+        elipse_x = start_pos[0] - elipse_w/2
+        if dist_y > 0:# bottom side of 0,0
+            elipse_y = start_pos[1]
+            elipse_start_angle = -math.pi * 1/2
+            elipse_end_angle = math.pi * 1/2
+
+            arrow_img = arrow_left
+            rotate = elipse_h/elipse_w * 10
+            if rotate > 30:
+                rotate = 30
+            arrow_img = pg.transform.rotate(arrow_img, rotate)
+            arrow_left_rect.left = end_pos[0]
+            arrow_left_rect.centery = end_pos[1]
+            arrow_left_rect.move_ip( -rotate /5, -rotate * 3/8)
+            arrow_rect = arrow_left_rect
+        elif dist_y < 0:# top side of 0,0
+            elipse_y = start_pos[1] - elipse_h
+            elipse_start_angle = math.pi * 1/2
+            elipse_end_angle = math.pi * 3/2
+
+            arrow_img = arrow_right
+            rotate = elipse_h/elipse_w * 10
+            if rotate > 30:
+                rotate = 30
+            arrow_img = pg.transform.rotate(arrow_img, rotate)
+            arrow_right_rect.right = end_pos[0]
+            arrow_right_rect.centery = end_pos[1]
+            arrow_right_rect.move_ip( -rotate /4, rotate /7)
+            arrow_rect = arrow_right_rect
+    else:
+        if abs(dist_y/dist_x) <=1 and abs(dist_y/dist_x) > 0:# when dist_y is less then dist_x
+            if (dist_x > 0 and dist_y < 0 ) or (dist_x < 0 and dist_y > 0 ):# when the end point is in the first half of the first quarter or third quarter
+                mid_point_rect.topleft = ( (1 + abs(dist_y/dist_x)) * (dist_x/2) + start_pos[0], start_pos[1])
+                elipse_w, elipse_h = get_elipse_dimensions(start_pos, end_pos, mid_point_rect)
+                if elipse_w < 40:
+                    elipse_w = 40
+                if elipse_h < 40:
+                    elipse_h = 40
+                if dist_y < 0: # first quater
+                    elipse_x = start_pos[0]
+                    if (end_pos[0] - mid_point_rect.x) == 0:
+                        elipse_start_angle = math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x + 1))
+                    else: 
+                        elipse_start_angle = math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x))
+                        
+                        if elipse_w/elipse_h < 1.2:
+                            elipse_start_angle += 0.05 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.35:
+                            elipse_start_angle += 0.075 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.45:
+                            elipse_start_angle += 0.1 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.6:
+                            elipse_start_angle += 0.13 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.8:
+                            elipse_start_angle += 0.16 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 2.5:
+                            elipse_start_angle += 0.19 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 2.7:
+                            elipse_start_angle += 0.18 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 3.2:
+                            elipse_start_angle += 0.15 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 4:
+                            elipse_start_angle += 0.12 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 5.1:
+                            elipse_start_angle += 0.09 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 6.2:
+                            elipse_start_angle += 0.07 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 9:
+                            elipse_start_angle += 0.04 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 12:
+                            elipse_start_angle += 0.03 * elipse_w/elipse_h
+                     
+                        #empty_surface_rect.topleft = (end_pos[0], end_pos[1])
+                        
+                    elipse_end_angle = math.pi
+
+                    arrow_img = arrow_right
+                    rotate = elipse_w/elipse_h * 15 - 10
+                    if rotate > 25:
+                        rotate = 25
+
+                    arrow_img = pg.transform.rotate(arrow_img, -rotate)
+                    arrow_right_rect.right = end_pos[0]
+                    arrow_right_rect.centery = end_pos[1]
+                    arrow_right_rect.move_ip( -rotate * 2/8, -rotate * 5/16)
+                    arrow_rect = arrow_right_rect
+                elif dist_y > 0: # third quater
+                    elipse_x = start_pos[0] - elipse_w
+                    if (end_pos[0] - mid_point_rect.x) == 0:
+                        elipse_start_angle = math.pi + abs(math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x + 1)))
+                    else:
+                        elipse_start_angle = math.pi + abs(math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x)))
+    
+                        if elipse_w/elipse_h < 1.2:
+                            elipse_start_angle += 0.05 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.35:
+                            elipse_start_angle += 0.075 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.45:
+                            elipse_start_angle += 0.1 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.6:
+                            elipse_start_angle += 0.13 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 1.8:
+                            elipse_start_angle += 0.16 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 2.5:
+                            elipse_start_angle += 0.19 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 2.7:
+                            elipse_start_angle += 0.18 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 3.2:
+                            elipse_start_angle += 0.15 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 4:
+                            elipse_start_angle += 0.12 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 5.1:
+                            elipse_start_angle += 0.09 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 6.2:
+                            elipse_start_angle += 0.07 * elipse_w/elipse_h
+                        elif elipse_w/elipse_h < 9:
+                            elipse_start_angle += 0.04 * elipse_w/elipse_h
+
+                    elipse_end_angle = 0
+
+                    arrow_img = arrow_left
+                    rotate = elipse_w/elipse_h * 20 - 20
+                    if rotate > 30:
+                        rotate = 30
+                    arrow_img = pg.transform.rotate(arrow_img, -rotate)
+                    arrow_left_rect.left = end_pos[0]
+                    arrow_left_rect.centery = end_pos[1]
+                    arrow_left_rect.move_ip( -rotate * 2/8, -2)
+                    arrow_rect = arrow_left_rect
+                elipse_y = start_pos[1] - elipse_h/2        
+            elif (dist_x > 0 and dist_y > 0 ) or (dist_x < 0 and dist_y < 0 ):# when the end point is in the second half of the second quarter or fourth qyarter
+
+                if dist_y < 0: # second quarter
+                    mid_point_rect.topleft = ( start_pos[0], (1 + abs(dist_x/dist_y)) * (dist_y/2) + start_pos[1])
+                    elipse_w, elipse_h = get_elipse_dimensions(start_pos, end_pos, mid_point_rect)
+                    if elipse_w < 60:
+                        elipse_w = 60
+                    if elipse_h < 60:
+                        elipse_h = 60
+
+                    elipse_x = start_pos[0] - elipse_w/2
+                    elipse_y = start_pos[1] - elipse_h
+                    if (end_pos[0] - mid_point_rect.x) == 0:
+                        elipse_start_angle = math.pi - abs(math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x+1)))
+                    else:
+                        elipse_start_angle = math.pi - abs(math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x)))
+                        
+                        for i in range(0, 7):# 0.96 - 0.78
+                            if elipse_h/elipse_w >0.96 - i*0.03:
+                                elipse_start_angle += (0.1 + 0.06*i) * (elipse_h/elipse_w)**(1/5)
+                                break
+                        for i in range(0, 7):# 0.78 - 0.6
+                            if elipse_h/elipse_w > 0.78 - i*0.03 and elipse_h/elipse_w <= 0.78:
+                                elipse_start_angle += (0.5 + 0.07*i) * (elipse_h/elipse_w)**(1/5)
+                                break
+                        for i in range(0, 7):# 0.6 - 0.42
+                            if elipse_h/elipse_w > 0.6 - i*0.03 and elipse_h/elipse_w <= 0.6:
+                                elipse_start_angle += (0.9 + 0.08*i) * (elipse_h/elipse_w)**(1/5)
+                                break
+                        for i in range(0, 17):# 0.42 - 0.26
+                            if elipse_h/elipse_w > 0.42 - i*0.01 and elipse_h/elipse_w <= 0.42:
+                                elipse_start_angle += (1.4 + 0.034*i) * (elipse_h/elipse_w)**(1/5)
+                                break
+                        for i in range(0, 11):# 0.26 - 0.16
+                            if elipse_h/elipse_w > 0.26 - i*0.01 and elipse_h/elipse_w <= 0.26:
+                                elipse_start_angle += (1.95 + 0.047*i) * (elipse_h/elipse_w)**(1/5)
+                                break
+                        
+                    elipse_end_angle = math.pi * 3/2
+
+                    arrow_img = arrow_up
+                    
+                    if  elipse_w/elipse_h < 1.2:
+                        rotate =  elipse_w/elipse_h * 10
+                    elif  elipse_w/elipse_h <1.5:
+                        rotate =  elipse_w/elipse_h * 15
+                    else:
+                        rotate =  elipse_w/elipse_h * 25
+                    if rotate > 80:
+                        rotate = 80
+                    #print(rotate,  elipse_w/elipse_h)
+                    arrow_img = pg.transform.rotate(arrow_img, rotate)
+                    arrow_up_rect.centerx = end_pos[0]
+                    arrow_up_rect.top = end_pos[1]
+                    if  elipse_w/elipse_h <3:
+                        arrow_up_rect.move_ip( rotate * 1/7, -rotate * 2/7)
+                    else:
+                        arrow_up_rect.move_ip( rotate * 1/7, -rotate * 3/14)
+                    arrow_rect = arrow_up_rect
+                elif dist_y > 0: # fourth quater
+                    mid_point_rect.topleft = ( start_pos[0] + 7/16* (end_pos[0] - start_pos[0]), end_pos[1])
+                    elipse_w, elipse_h = get_elipse_dimensions(start_pos, end_pos, mid_point_rect)
+                    if elipse_w < 30:
+                        elipse_w = 30
+                    if elipse_h < 30:
+                        elipse_h = 30
+
+                    elipse_x = mid_point_rect.x - elipse_w/2
+                    elipse_y = mid_point_rect.y - elipse_h/2
+                    if (end_pos[0] - mid_point_rect.x) == 0:
+                        elipse_end_angle = math.pi - abs(math.atan(abs(start_pos[1]-mid_point_rect.y)/abs(start_pos[0]-mid_point_rect.x+1)))
+                    else:
+                        elipse_end_angle = math.pi - abs(math.atan(abs(start_pos[1]-mid_point_rect.y)/abs(start_pos[0]-mid_point_rect.x)))
+                    
+                        if elipse_h/elipse_w < 0.06:
+                            elipse_end_angle -= 200 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.065:
+                            elipse_end_angle -= 150 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.075:
+                            elipse_end_angle -= 120 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.09:
+                            elipse_end_angle -= 80 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.1:
+                            elipse_end_angle -= 70 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.11:
+                            elipse_end_angle -= 54 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.12:
+                            elipse_end_angle -= 40 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.13:
+                            elipse_end_angle -= 35 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.15:
+                            elipse_end_angle -= 28 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.17:
+                            elipse_end_angle -= 20 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.2:
+                            elipse_end_angle -= 14 * elipse_h/elipse_w * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.22:
+                            elipse_end_angle -= 2.4 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.25:
+                            elipse_end_angle -= 2 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.27:
+                            elipse_end_angle -= 1.8 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.33:
+                            elipse_end_angle -= 1.4 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.4:
+                            elipse_end_angle -=  elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.5:
+                            elipse_end_angle -=  0.7 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.62:
+                            elipse_end_angle -=  0.4 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.7:
+                            elipse_end_angle -=  0.2 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.8:
+                            elipse_end_angle -=  0.1 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 0.9:
+                            elipse_end_angle -=  0.06 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 1.05:
+                            elipse_end_angle -=  0
+                        elif elipse_h/elipse_w < 1.2:
+                            elipse_end_angle +=  0.1 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 1.4:
+                            elipse_end_angle +=  0.14 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 1.6:
+                            elipse_end_angle +=  0.17 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 1.8:
+                            elipse_end_angle +=  0.175 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 2:
+                            elipse_end_angle +=  0.18 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 2.3:
+                            elipse_end_angle +=  0.19 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 2.5:
+                            elipse_end_angle +=  0.185 * elipse_h/elipse_w
+                        elif elipse_h/elipse_w < 3:
+                            elipse_end_angle +=  0.19 * elipse_h/elipse_w
+
+                    elipse_start_angle = 0
+                    
+                    arrow_img = arrow_down
+                    rotate = elipse_w/elipse_h * 10
+                    if rotate > 80:
+                        rotate = 80
+                    arrow_img = pg.transform.rotate(arrow_img, rotate)
+                    arrow_down_rect.centerx = end_pos[0]
+                    arrow_down_rect.bottom = end_pos[1]
+                    
+                    if elipse_h < 80:
+                        arrow_down_rect.move_ip( -rotate * 3/14 if -rotate * 3/14 > -10 else -10, -rotate * 1/7 if -rotate * 1/7 > -7 else -7)
+                    else:
+                        arrow_down_rect.move_ip( -rotate * 2/7 if -rotate * 2/7 > -10 else -10, -rotate * 2/7 if -rotate * 2/7 > -7 else -7)
+                    arrow_rect = arrow_down_rect
+
+        elif abs(dist_x/dist_y) <=1 and abs(dist_x/dist_y) > 0:# when dist_y is greater then dist_x
+            if (dist_x > 0 and dist_y < 0 ) or (dist_x < 0 and dist_y > 0 ):# when the end point is in the second half of the first quarter or third quarter
+                mid_point_rect.topleft = ( end_pos[0], start_pos[1])
+                elipse_w, elipse_h = get_elipse_dimensions(start_pos, end_pos, mid_point_rect)
+                if elipse_w < 60:
+                    elipse_w = 60
+                if elipse_h < 60:
+                    elipse_h = 60
+                elipse_y = start_pos[1] - elipse_h/2
+                if dist_y < 0: # first quater
+                    elipse_x = start_pos[0]
+                    elipse_end_angle = math.pi
+                    elipse_start_angle = math.pi/2
+
+                    arrow_img = arrow_right
+                    rotate = elipse_h/elipse_w * 7
+                    if rotate > 80:
+                        rotate = 80
+                    arrow_img = pg.transform.rotate(arrow_img, rotate)
+                    arrow_right_rect.right = end_pos[0]
+                    arrow_right_rect.centery = end_pos[1]
+                    arrow_right_rect.move_ip( -rotate * 2/7 if -rotate * 2/7 > -10 else -10, rotate * 1/7 if -rotate * 1/7 < 7 else 7)
+                    arrow_rect = arrow_right_rect
+                elif dist_y > 0: # third quater
+                    elipse_x = start_pos[0] - elipse_w
+                    elipse_end_angle = 0
+                    elipse_start_angle = math.pi *3/2
+
+                    arrow_img = arrow_left
+                    rotate = elipse_h/elipse_w * 14
+                    if rotate > 80:
+                        rotate = 80
+                    arrow_img = pg.transform.rotate(arrow_img, rotate)
+                    arrow_left_rect.left = end_pos[0]
+                    arrow_left_rect.centery = end_pos[1]
+                    arrow_left_rect.move_ip( -rotate * 1/7 if -rotate * 1/7 > -10 else -10, -rotate * 3/7 if -rotate * 3/7 > -9 else -9)
+                    arrow_rect = arrow_left_rect
+                
+            elif (dist_x > 0 and dist_y > 0 ) or (dist_x < 0 and dist_y < 0 ):# when the end point is in the first half of the second quarter or fourth qyarter
+                mid_point_rect.topleft = ( start_pos[0], (1 + abs(dist_x/dist_y)) * (dist_y/2) + start_pos[1])
+                elipse_w, elipse_h = get_elipse_dimensions(start_pos, end_pos, mid_point_rect)
+                if elipse_w < 60:
+                    elipse_w = 60
+                if elipse_h < 60:
+                    elipse_h = 60
+                if dist_y < 0: # second quarter
+                    background.blit(mid_point, mid_point_rect)
+                    elipse_x = start_pos[0] - 1/2 * elipse_w
+                    elipse_y = start_pos[1] - elipse_h
+                    if (end_pos[1]-mid_point_rect.y) == 0:
+                        elipse_start_angle = math.pi*1/2 +  abs(math.atan(abs(end_pos[0]-mid_point_rect.x)/(end_pos[1]-mid_point_rect.y + 1)))
+                    else:
+                        elipse_start_angle = math.pi*1/2 +  abs(math.atan(abs(end_pos[0]-mid_point_rect.x)/(end_pos[1]-mid_point_rect.y)))
+                    elipse_end_angle = math.pi * 3/2
+
+                    arrow_img = arrow_up
+                    rotate = elipse_h/elipse_w * 7
+                    if rotate > 80:
+                        rotate = 80
+                    arrow_img = pg.transform.rotate(arrow_img, -rotate)
+                    arrow_up_rect.centerx = end_pos[0]
+                    arrow_up_rect.top = end_pos[1]
+                    arrow_up_rect.move_ip( -rotate * 2/7 if -rotate * 2/7 > -10 else -10, -rotate * 2/7 if -rotate * 2/7 > -9 else -9)
+                    arrow_rect = arrow_up_rect
+                elif dist_y > 0: # fourth quater
+                    elipse_x = start_pos[0] - elipse_w/2
+                    elipse_y = start_pos[1]
+                    if (end_pos[1]-mid_point_rect.y) == 0:
+                        elipse_start_angle = math.pi*3/2 +  abs(math.atan(abs(end_pos[0]-mid_point_rect.x)/(end_pos[1]-mid_point_rect.y + 1)))
+                    else:
+                        elipse_start_angle = math.pi*3/2 +  abs(math.atan(abs(end_pos[0]-mid_point_rect.x)/(end_pos[1]-mid_point_rect.y)))
+                    
+                    if elipse_h/elipse_w < 1.1:
+                        elipse_start_angle += 0.05 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 1.25:
+                        elipse_start_angle += 0.06 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 1.4:
+                        elipse_start_angle += 0.08 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 1.6:
+                        elipse_start_angle += 0.13 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 2:
+                        elipse_start_angle += 0.16 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 2.7:
+                        elipse_start_angle += 0.18 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 3.2:
+                        elipse_start_angle += 0.16 * elipse_h/elipse_w
+                    elif elipse_h/elipse_w < 4:
+                        elipse_start_angle += 0.12 * elipse_h/elipse_w
+
+
+                    elipse_end_angle = math.pi * 1/2
+
+                    arrow_img = arrow_down
+                    rotate = elipse_h/elipse_w * 5.5
+                    if rotate > 80:
+                        rotate = 80
+                    arrow_img = pg.transform.rotate(arrow_img, -rotate)
+                    arrow_down_rect.centerx = end_pos[0]
+                    arrow_down_rect.bottom = end_pos[1]
+                    arrow_down_rect.move_ip( -rotate * 6/14 if -rotate * 6/14 > -3 else -3, -rotate * 1/7 if -rotate * 1/7 > -10 else -10)
+                    arrow_rect = arrow_down_rect
+
+    # if elipse_w < 20:
+    #     elipse_w = 20
+    # if elipse_h < 20:
+    #     elipse_h = 20
+
+    if end_pos[0] != start_pos[0] or end_pos[1] != start_pos[1]:
+        pg.draw.arc(surf, arc_color, ( elipse_x, elipse_y, elipse_w, elipse_h), elipse_start_angle, elipse_end_angle, size if size < min(elipse_w, elipse_h) else 1)
+        surf.blit(empty_surface, empty_surface_rect)
+    pg.display.flip()
+    surf.blit(arrow_img, arrow_rect)
+
+def get_elipse_dimensions(start_pos, end_pos, mid_point_rect):
+    #calculation of ellipse parameter
+    elipse_a = 5
+    elipse_b = 5
+    counter = -((end_pos[0] - mid_point_rect.x)*(start_pos[1] - mid_point_rect.y))**2 + ((start_pos[0] - mid_point_rect.x)*(end_pos[1] - mid_point_rect.y))**2
+    denominator_a = (end_pos[1] - mid_point_rect.y)**2 - (start_pos[1] - mid_point_rect.y)**2
+    denominator_b = (start_pos[0] - mid_point_rect.x)**2 - (end_pos[0] - mid_point_rect.x)**2
+
+    if denominator_a != 0:
+        elipse_a = math.sqrt(counter/denominator_a)
+    # else:
+    #     elipse_a = math.sqrt(counter/(denominator_a+1))
+    if denominator_b != 0:
+        elipse_b = math.sqrt(counter/denominator_b)
+    # else:
+    #     elipse_b = math.sqrt(counter/(denominator_a+1))
+
+    elipse_w = 2*elipse_a
+    elipse_h = 2*elipse_b
+
+    return elipse_w, elipse_h
 
 class BPMN():
     def __init__(self, activities):
@@ -93,7 +570,7 @@ class BPMN():
                             move_elem( [ TI.index(to_elem), 2 ], [row_num, self.start_width] )
                             self.add_elem_on_board( "end", [ TI.index(to_elem), 2 ])
                         if found == False:#otherwise we have to add new row and then move elem
-                            self.add_row()
+                            self.add_row(d)
                             move_elem([ TI.index(to_elem), 2 ], [self.height - 1, self.start_width])
                             self.add_elem_on_board( "end", [ TI.index(to_elem), 2 ])
             else:
@@ -143,12 +620,12 @@ class BPMN():
                 move_about = 2
                 break
         #adding columns
-        self.add_column(move_about)
+        self.add_column( move_about)
         #moving all elements from "move_about" number of columns to the right
-        for i in range(0, 2):
-            for row_num in range(0, self.height):
-                self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
-
+        # for i in range(0, 2):
+        #     for row_num in range(0, self.height):
+        #         self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
+        self.move_all_right( 2, move_about )
         #putting pattern a on board
         for pat_num in range(0, len(YLa[0])):
             if YLa[0][pat_num] in TI and YLa[1][pat_num] in TO:# if start activity and end activity is in pattern a
@@ -222,7 +699,7 @@ class BPMN():
                                     self.add_elem_on_board( "exclusive", [row_num, col_num + 1] )
                                     self.add_connection( [row_num, col_num], [row_num, col_num + 1] )
                                     break
-                    if found == False:
+                    if found == False:# if we cant find two places with "None" placed next to each other we create the space
                         self.add_row()
                         self.add_elem_on_board( YLb[0][pat_num], [self.height - 1, self.start_width] )
                         self.add_elem_on_board( "exclusive", [self.height - 1, self.start_width + 1] )
@@ -412,7 +889,115 @@ class BPMN():
                             if self._connections['from'][con_num] == self.find_in_board( activ ):
                                 self._connections['to'][con_num][1] -= 1
 
+    def merge_exclusive(self):
+        for j in range(0, 2):
+            #merging exclusive if they same set of incomming connections or outgoing connections
+            for col_num1 in range(0, len(self._board)):
+                for row_num1 in range(0, len(self._board[col_num1])):
+                    if self._board[col_num1][row_num1] == "exclusive":#choose that exclusive
+                        if j == 0:
+                            con_to = self.find_connections_to( [col_num1, row_num1] ) # possitions of all elements on board that are connected to chosen exclusive 
+                        elif j == 1:
+                            con_from = self.find_connections_from( [col_num1, row_num1] ) # possitions of all elements on board that are connected from chosen exclusive 
+                        same_exc_pos = []# possitions of exlusives that have the same elements incomming/outgoing into/from that exclusive like chosen exclusive
+                        for col_num2 in range(0, len(self._board)):
+                            for row_num2 in range(0, len(self._board[col_num2])):
+                                if col_num1 != col_num2 or row_num1 != row_num2:
+                                    if self._board[col_num2][row_num2] == "exclusive":
+                                        if j == 0:
+                                            if self.find_connections_to( [col_num2, row_num2] ) == con_to:
+                                                same_exc_pos.append([col_num2, row_num2])
+                                        elif j == 1:
+                                            if self.find_connections_from( [col_num2, row_num2] ) == con_from:
+                                                same_exc_pos.append([col_num2, row_num2])
+                        for i in range(0, len(same_exc_pos)):
+                            self.move_elem(same_exc_pos[i], [col_num1, row_num1], True)
+        
+        for col_num1 in range(0, len(self._board)):# merging exclusives if their connections are a subgroup of connections of other exclusive
+            for row_num1 in range(0, len(self._board[col_num1])):
+                if self._board[col_num1][row_num1] == "exclusive":#choose that exclusive
+                    con_to = self.find_connections_to( [col_num1, row_num1] )#saving connections to and from chosen exclusive
+                    con_from = self.find_connections_from( [col_num1, row_num1] )
+                    merged = False
+                    for col_num2 in range(0, len(self._board)):
+                        if merged == False:
+                            for row_num2 in range(0, len(self._board[col_num2])):
+                                if col_num1 != col_num2 or row_num1 != row_num2:
+                                    if self._board[col_num2][row_num2] == "exclusive":
+                                        is_subgroup = True
+                                        for con_to_num in range(0, len(con_to)):
+                                            if con_to[con_to_num] not in self.find_connections_to( [col_num2, row_num2] ):
+                                                is_subgroup = False
+                                                break
+                                        for con_from_num in range(0, len(con_from)):
+                                            if con_from[con_from_num] not in self.find_connections_from( [col_num2, row_num2] ):
+                                                is_subgroup = False
+                                                break
+                                        if is_subgroup: 
+                                            self.move_elem([col_num1, row_num1], [col_num2, row_num2], True)
+                                            merged = True
+                                            break
+
     def organize(self):
+        board_copy = []
+        connections_copy = { "from" : [],
+                              "to" : []}
+
+        for row_num in range(0, len(self._board)):
+            board_copy.append(self._board[row_num][:])
+        for con_num in range(0, len(self._connections["from"])):
+            connections_copy["from"].append( self._connections["from"][:] )
+            connections_copy["to"].append( self._connections["to"][:] )
+        
+        self._board = [[None]]
+        self._connections = { "from" : [],
+                              "to" : []}
+
+        print(board_copy)
+        print(connections_copy)
+        print()
+        print(self._board)
+        print(self._connections)
+
+        # current_pos = [[0,0]]
+        # con_to1 = [] # possitions of elements that element on current pos is connected 
+        # con_to2 = [] # possitions of elements that element connected to element on current possition are connected
+
+        # already_on = [] # list of all coordintaest from self._borad that are added into new_board
+
+        # col_counter = 0
+
+        # new_board[0][0] = self._board[current_pos[0][0]][current_pos[0][1]]
+        # already_on = [[0,0]]
+
+        # adjustment = True
+        # while adjustment:
+        #     for con_num0 in range(0, len(current_pos)):# go through all currently under consideration activities 
+        #         return_con = []
+        #         non_return_con = []
+        #         con_to1 = self.find_connections_from( current_pos[con_num0] ) # save all connections from current activity
+        #         for con_num1 in range(0, len(con_to1)): # go through all connections from current activity 
+        #             con_to2 = self.find_connections_from(con_to1) # save all connections from activity connected from current activity
+        #             comming_back = True # flag says if activity connected from current activity has connections going back in graph
+        #             for con_num2 in range(0, len(con_to2)): # go through all connections from activity connected from current activity
+        #                 if con_to2[con_num2] in already_on or con_to2[con_num2] in con_to1: # if connection is going back 
+        #                     return_con.append(con_to1[con_num1])
+        #                     comming_back = False
+        #                     break
+        #             if comming_back == True:
+        #                 non_return_con.append(con_to1[con_num1])
+        #         self.add_column()
+        #         for non_ret_num in range(0, len(non_return_con)):
+        #             if len(new_board) == non_ret_num:
+        #                 self.add_row()
+        #             new_board[non_ret_num][col_counter + 1] = self._board[non_return_con[non_ret_num][0]][non_return_con[non_ret_num][1]]
+        #             already_on.append(non_return_con[non_ret_num])
+
+
+        #         print(return_con, non_return_con)
+        #         adjustment = False
+                
+       
 
 
     def run(self, TI, TO, YLa, YLb, YLc):
@@ -423,7 +1008,7 @@ class BPMN():
         self.create_patt_c( YLc )
         self.create_patt_d()
         self.create_patt_e()
-
+        self.merge_exclusive()
         self.organize()
     
         return self.width, self.height
@@ -445,24 +1030,28 @@ class BPMN():
         else:
             print("you wanted to place ", elem_name, "but it's already on board")
 
-    def move_elem(self, from_pos, where_pos):
-        if self.get_activity(where_pos) == None:
+    def move_elem(self, from_pos, where_pos, old_one = False):
+        if old_one:
+            self._board[from_pos[0]][from_pos[1]] = None
+        else:
             self._board[where_pos[0]][where_pos[1]] = self._board[from_pos[0]][from_pos[1]]
             self._board[from_pos[0]][from_pos[1]] = None
-            for start_pos in self._connections["from"]:
-                if from_pos == start_pos: 
-                    self._connections["from"][ self._connections["from"].index(start_pos)] = where_pos
-                
-            for end_pos in self._connections["to"]:
-                if from_pos == end_pos: 
-                    self._connections["to"][ self._connections["to"].index(end_pos)] = where_pos
+        for start_pos in self._connections["from"]:
+            if from_pos == start_pos: 
+                self._connections["from"][ self._connections["from"].index(start_pos)] = where_pos
+        for end_pos in self._connections["to"]:
+            if from_pos == end_pos: 
+                self._connections["to"][ self._connections["to"].index(end_pos)] = where_pos
 
-    def move_all_right(self, start_width, how_much):
+    def move_all_right(self, start_col, how_much = 1):
         """moves all elements on board to the right starting from "start_width" column
 
-        :param start_width: number of column from where all columns will be move to the right
+        :param start_col: number of column from where all columns will be move to the right
         :param how_much: number of fileds that all element will be moved to the right
-        
+        """
+        for shift_num in range(0, self.width - start_col - how_much ):
+            for row_num in range(0, self.height):
+                self.move_elem( [row_num, self.width - 1 - shift_num - how_much] , [row_num, self.width - 1 - shift_num])
 
     def find_in_board(self, name):
         """can find position of activity on the board when you give its name"""
@@ -470,7 +1059,21 @@ class BPMN():
             for col_num in range(0, len(self._board[row_num])):
                 if self._board[row_num][col_num] == name:
                     return [row_num, col_num]
-           
+
+    def find_connections_to(self, end_pos):
+        connections_to = []
+        for con_num in range(0, len(self._connections["from"])):
+            if self._connections["to"][con_num] == end_pos:
+                connections_to.append( self._connections["from"][con_num] )
+        return connections_to
+
+    def find_connections_from(self, start_pos):
+        connections_from = []
+        for con_num in range(0, len(self._connections["to"])):
+            if self._connections["from"][con_num] == start_pos:
+                connections_from.append( self._connections["to"][con_num] )
+        return connections_from
+
     def ele_pos(self, surf, pos_board):
         """returns possition on surface of element of given position in board
         
@@ -561,7 +1164,7 @@ class BPMN():
 
     def add_row(self, how_many = 1):
         for j in range(0, how_many):
-            self._board.append( [ None for i in range(0, self.width ) ] )
+            self._board.append( [ None for i in range(0, len(self._board[0]) ) ] )
 
     def add_column(self, how_many = 1):
         for j in range(0, how_many):
@@ -586,8 +1189,22 @@ class BPMN():
         """drawing BPMN model on given surface
         
         :param surface: surface on which the BPMN model will be drawn"""
+        
+        #bliting activities, events ....
+        for c in range(0, len(self._board)):
+            for r in range(0, len(self._board[c])):
+                if self._board[c][r] != None:#If there is name on possition
+                    elem_surf, elem_surf_rect = self.get_activity_surf( self._board[c][r] )
+                    elem_surf_rect.center = self.ele_pos(surf, [c, r])
+                    surf.blit( elem_surf, elem_surf_rect )
+
+
         #bliting connections
+        print(self._connections["from"])
         for connection_num in range(0, len(self._connections["from"]) ):
+            move_start = [0,0]
+            move_end = [0,0]
+            
             start_pos = self.ele_pos( surf, self._connections["from"][connection_num] )
             if self.get_activity_surf(self.get_activity( self._connections["from"][connection_num] )) != None:
                 start_surf, start_surf_rect = self.get_activity_surf(self.get_activity( self._connections["from"][connection_num] ))
@@ -600,32 +1217,130 @@ class BPMN():
             else:
                 print("you try to get activity surf of end element with pos", self._connections["to"][connection_num], " but on this pos there is no elem")
             
-            if start_pos[0] <= end_pos[0]:
-                if self._board[ self._connections["from"][connection_num][0] ][ self._connections["from"][connection_num][1] ] != "start":
-                    start_pos[0] += start_surf_rect.width/2
-                else:
-                    start_pos[0] += 15
-                if self._board[ self._connections["to"][connection_num][0] ][ self._connections["to"][connection_num][1] ] != "end":
-                    end_pos[0] -= end_surf_rect.width/2
-                else:
-                    end_pos[0] -= 15
-            elif start_pos[0] > end_pos[0]:
-                start_pos[0] -= start_surf_rect.width/2
-                if self._board[ self._connections["to"][connection_num][0] ][ self._connections["to"][connection_num][1] ] != "end":
-                    end_pos[0] += end_surf_rect.width/2
-                else:
-                    end_pos[0] += 15
+            #start elements
+            #start element is "start"
+            if self._board[ self._connections["from"][connection_num][0] ][ self._connections["from"][connection_num][1] ] == "start":
+                if start_pos[1] == end_pos[1]:
+                    move_start[0] += 10
+                    move_start[1] -= 10
+                elif start_pos[1] < end_pos[1]:
+                    move_start[0] += 15
+                
+            #start element is exlucsive or parallel
+            elif self._board[ self._connections["from"][connection_num][0] ][ self._connections["from"][connection_num][1] ] == "exclusive"\
+                or self._board[ self._connections["from"][connection_num][0] ][ self._connections["from"][connection_num][1] ] == "parallel":
+                if start_pos[0] < end_pos[0]: 
+                    if start_pos[1] >= end_pos[1]:
+                        move_start[0] += 10
+                        move_start[1] -= 10
+                    elif start_pos[1] < end_pos[1]:
+                        move_start[0] += 20
+                elif start_pos[0] < end_pos[0]:
+                    pass
+                elif start_pos[0] > end_pos[0]:
+                    move_start[0] -= 10
+                    move_start[1] += 10
+                    #move_start[1] -= 10
+            #start element is smth else then start, exclusive, parallel
+            else:
+                if start_pos[0] < end_pos[0]:#end element is to the right of the start element
+                    if start_pos[1] < end_pos[1]:#end element is to the RIGHT-DOWN of the start element
+                        move_start[0] += start_surf_rect.width/2
+                    elif start_pos[1] == end_pos[1]:#end element is to the RIGHT-MID of the start element
+                        move_start[0] += start_surf_rect.width/4
+                        move_start[1] -= start_surf_rect.height/2
+                    elif start_pos[1] > end_pos[1]:#end element is to the RIGHT-TOP of the start element
+                        move_start[0] += start_surf_rect.width/4
+                        move_start[1] -= start_surf_rect.height/2
+                elif start_pos[0] == end_pos[0]:#end element is to the RIGHT/UP of the start element
+                    if start_pos[1] < end_pos[1]:#end element is to the LEFT-DOWN of the start element
+                        move_start[1] += start_surf_rect.height/2
+                    elif start_pos[1] > end_pos[1]:#end element is to the LEFT-TOP of the start element
+                        move_start[1] -= start_surf_rect.height/2
+                elif start_pos[0] > end_pos[0]:#end element is to the LEFT of the start element
+                    if start_pos[1] < end_pos[1]:#end element is to the LEFT-DOWN of the start element
+                        move_start[1] += start_surf_rect.height/2
+                    elif start_pos[1] == end_pos[1]:#end element is to the LEFT-MID of the start element
+                        move_start[0] -= start_surf_rect.width/2
+                    elif start_pos[1] > end_pos[1]:#end element is to the LEFT-TOP of the start element
+                        move_start[0] -= start_surf_rect.width/4
+                        move_start[1] -= start_surf_rect.height/2
 
-            # self.draw_line( surf, start_pos, [ start_pos[0] + (end_pos[0] - start_pos[0])/2, start_pos[1] ] )
-            # self.draw_line( surf, [ start_pos[0] +  (end_pos[0] - start_pos[0])/2, start_pos[1] ], [ start_pos[0] + (end_pos[0] - start_pos[0])/2, end_pos[1] ] )
-            # self.draw_line( surf, [ start_pos[0] +  (end_pos[0] - start_pos[0])/2, end_pos[1] ], end_pos, True )
 
-            self.draw_line( surf, start_pos, end_pos, True )
+            #end elements
+            #end element is "end"
+            if self._board[ self._connections["to"][connection_num][0] ][ self._connections["to"][connection_num][1] ] == "end":
+                if start_pos[1] <= end_pos[1]:
+                    move_end[0] -= 10
+                    move_end[1] -= 10
+                elif start_pos[1] > end_pos[1]:
+                    move_end[0] -= 10
+                    move_end[0] += 10
+            #end element is exclusive or parallel
+            elif self._board[ self._connections["to"][connection_num][0] ][ self._connections["to"][connection_num][1] ] == "exclusive" \
+                or self._board[ self._connections["to"][connection_num][0] ][ self._connections["to"][connection_num][1] ] == "parallel":
+                if start_pos[0] < end_pos[0]:
+                    if start_pos[1] <= end_pos[1]:
+                        move_end[0] -= 10
+                        move_end[1] -= 10
+                    elif start_pos[1] > end_pos[1]:
+                        move_end[0] -= 10
+                        move_end[1] += 10
+                elif start_pos[0] == end_pos[0]:
+                    if start_pos[1] < end_pos[1]:
+                        move_end[1] -= 15
+                    elif start_pos[1] > end_pos[1]:
+                        move_end[1] += 15
+                elif start_pos[0] > end_pos[0]:
+                    if start_pos[1] < end_pos[1]:
+                        move_end[0] += 10
+                        move_end[1] -= 10
+                    elif start_pos[1] == end_pos[1]:
+                        pass
+                    elif start_pos[1] > end_pos[1]:
+                        move_end[0] += 10
+                        move_end[1] += 10
 
-        #bliting activities, events ....
-        for c in range(0, len(self._board)):
-            for r in range(0, len(self._board[c])):
-                if self._board[c][r] != None:#If there is name on possition
-                    elem_surf, elem_surf_rect = self.get_activity_surf( self._board[c][r] )
-                    elem_surf_rect.center = self.ele_pos(surf, [c, r])
-                    surf.blit( elem_surf, elem_surf_rect )
+            #end element is smth else then exclusive or parallel
+            else:
+                if start_pos[0] < end_pos[0]:#end element is to the right of the start element
+                    if start_pos[1] < end_pos[1]:#end element is to the RIGHT-DOWN of the start element
+                        move_end[0] -= end_surf_rect.width/4
+                        move_end[1] -= end_surf_rect.height/2
+                    elif start_pos[1] == end_pos[1]:#end element is to the RIGHT-MID of the start element
+                        move_end[0] -= end_surf_rect.width*3/8
+                        move_end[1] -= end_surf_rect.height/2 + 2 
+                    elif start_pos[1] > end_pos[1]:#end element is to the RIGHT-TOP of the start element
+                        move_end[0] -= end_surf_rect.width/2
+                elif start_pos[0] == end_pos[0]:#end element is to the RIGHT/UP of the start element
+                    if start_pos[1] < end_pos[1]:
+                        move_end[0] += end_surf_rect.width/4
+                        move_end[1] -= end_surf_rect.height/2
+                    elif start_pos[1] == end_pos[1]:
+                        pass#cant be ! 
+                    elif start_pos[1] > end_pos[1]:
+                        move_end[0] += end_surf_rect.width/4
+                        move_end[1] += end_surf_rect.height/2
+                elif start_pos[0] > end_pos[0]:#end element is to the LEFT of the start element
+                    if start_pos[1] < end_pos[1]:#end element is to the LEFT-DOWN of the start element
+                        move_end[0] += end_surf_rect.width/2
+                        #move_end[1] -= end_surf_rect.height/2
+                    elif start_pos[1] == end_pos[1]:#end element is to the LEFT-MID of the start element
+                        move_end[0] += end_surf_rect.width*3/8
+                        move_end[1] += end_surf_rect.height/2 + 2
+                    elif start_pos[1] > end_pos[1]:#end element is to the LEFT-TOP of the start element
+                        move_end[0] += end_surf_rect.width/4
+                        move_end[1] += end_surf_rect.height/2
+
+            # if connection_num >= 24 and connection_num < 25:
+            #     print( start_pos[0] > end_pos[0], start_pos[1] < end_pos[1])
+                #print(f'poczatek: {start_pos}, przesuniecie poczatek: {move_start}, koniec: {end_pos}, przesuniecie koniec: {move_end}')
+                #print(f'poczatek: ({start_pos[0]+move_start[0]},{start_pos[1]+move_start[1]})   koniec: ({end_pos[0]+move_end[0]},{end_pos[1]+move_end[1]})')
+            #     draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (200,0,0) )
+            # else:
+            #     draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (0,200,0) )
+        
+            draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (200,0,0) )
+
+        
+        

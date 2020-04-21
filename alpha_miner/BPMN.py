@@ -153,7 +153,10 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                     arrow_img = pg.transform.rotate(arrow_img, -rotate)
                     arrow_right_rect.right = end_pos[0]
                     arrow_right_rect.centery = end_pos[1]
-                    arrow_right_rect.move_ip( -rotate * 2/8, -rotate * 5/16)
+                    if start_pos[1] - end_pos[1] < 10:
+                        arrow_right_rect.move_ip( -rotate * 2/8, -rotate * 5/16 - (10 - (start_pos[1] - end_pos[1])) *0.5 )
+                    else:
+                        arrow_right_rect.move_ip( -rotate * 2/8, -rotate * 5/16)
                     arrow_rect = arrow_right_rect
                 elif dist_y > 0: # third quater
                     elipse_x = start_pos[0] - elipse_w
@@ -199,7 +202,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                     arrow_left_rect.move_ip( -rotate * 2/8, -2)
                     arrow_rect = arrow_left_rect
                 elipse_y = start_pos[1] - elipse_h/2        
-            elif (dist_x > 0 and dist_y > 0 ) or (dist_x < 0 and dist_y < 0 ):# when the end point is in the second half of the second quarter or fourth qyarter
+            elif (dist_x > 0 and dist_y > 0 ) or (dist_x < 0 and dist_y < 0 ):# when the end point is in the second half of the second quarter or fourth quarter
 
                 if dist_y < 0: # second quarter
                     mid_point_rect.topleft = ( start_pos[0], (1 + abs(dist_x/dist_y)) * (dist_y/2) + start_pos[1])
@@ -216,27 +219,27 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                     else:
                         elipse_start_angle = math.pi - abs(math.atan(abs(end_pos[1]-mid_point_rect.y)/(end_pos[0]-mid_point_rect.x)))
                         
-                        for i in range(0, 7):# 0.96 - 0.78
-                            if elipse_h/elipse_w >0.96 - i*0.03:
-                                elipse_start_angle += (0.1 + 0.06*i) * (elipse_h/elipse_w)**(1/5)
+                        for i in range(0, 20):# 1 - 0.8
+                            if elipse_h/elipse_w >0.99 - i*0.01:
+                                elipse_start_angle += (0.04 + 0.02*i) * (elipse_h/elipse_w)**(1/5)
                                 break
-                        for i in range(0, 7):# 0.78 - 0.6
-                            if elipse_h/elipse_w > 0.78 - i*0.03 and elipse_h/elipse_w <= 0.78:
-                                elipse_start_angle += (0.5 + 0.07*i) * (elipse_h/elipse_w)**(1/5)
+                        for i in range(0, 20):# 0.8 - 0.6
+                            if elipse_h/elipse_w > 0.79 - i*0.01 and elipse_h/elipse_w <= 0.8:
+                                elipse_start_angle += (0.45 + 0.023*i) * (elipse_h/elipse_w)**(1/5)
                                 break
-                        for i in range(0, 7):# 0.6 - 0.42
-                            if elipse_h/elipse_w > 0.6 - i*0.03 and elipse_h/elipse_w <= 0.6:
-                                elipse_start_angle += (0.9 + 0.08*i) * (elipse_h/elipse_w)**(1/5)
+                        for i in range(0, 39):# 0.6 - 0.4
+                            if elipse_h/elipse_w > 0.595 - i*0.005 and elipse_h/elipse_w <= 0.6:
+                                elipse_start_angle += (0.9 + 0.014*i) * (elipse_h/elipse_w)**(1/5)
                                 break
-                        for i in range(0, 17):# 0.42 - 0.26
-                            if elipse_h/elipse_w > 0.42 - i*0.01 and elipse_h/elipse_w <= 0.42:
-                                elipse_start_angle += (1.4 + 0.034*i) * (elipse_h/elipse_w)**(1/5)
-                                break
-                        for i in range(0, 11):# 0.26 - 0.16
-                            if elipse_h/elipse_w > 0.26 - i*0.01 and elipse_h/elipse_w <= 0.26:
-                                elipse_start_angle += (1.95 + 0.047*i) * (elipse_h/elipse_w)**(1/5)
-                                break
-                        
+                        # for i in range(0, 17):# 0.42 - 0.26
+                        #     if elipse_h/elipse_w > 0.42 - i*0.01 and elipse_h/elipse_w <= 0.42:
+                        #         elipse_start_angle += (1.4 + 0.034*i) * (elipse_h/elipse_w)**(1/5)
+                        #         break
+                        # for i in range(0, 11):# 0.26 - 0.16
+                        #     if elipse_h/elipse_w > 0.26 - i*0.01 and elipse_h/elipse_w <= 0.26:
+                        #         elipse_start_angle += (1.95 + 0.047*i) * (elipse_h/elipse_w)**(1/5)
+                        #         break
+                        print(elipse_h/elipse_w)
                     elipse_end_angle = math.pi * 3/2
 
                     arrow_img = arrow_up
@@ -345,7 +348,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                     arrow_down_rect.bottom = end_pos[1]
                     
                     if elipse_h < 80:
-                        arrow_down_rect.move_ip( -rotate * 3/14 if -rotate * 3/14 > -10 else -10, -rotate * 1/7 if -rotate * 1/7 > -7 else -7)
+                        arrow_down_rect.move_ip( -rotate * 4/14 if -rotate * 3/14 > -10 else -10, -rotate * 1/7 if -rotate * 1/7 > -7 else -7)
                     else:
                         arrow_down_rect.move_ip( -rotate * 2/7 if -rotate * 2/7 > -10 else -10, -rotate * 2/7 if -rotate * 2/7 > -7 else -7)
                     arrow_rect = arrow_down_rect
@@ -361,7 +364,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                 elipse_y = start_pos[1] - elipse_h/2
                 if dist_y < 0: # first quater
                     elipse_x = start_pos[0]
-                    elipse_end_angle = math.pi
+                    elipse_end_angle = math.pi + math.pi/180 * 2
                     elipse_start_angle = math.pi/2
 
                     arrow_img = arrow_right
@@ -371,7 +374,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                     arrow_img = pg.transform.rotate(arrow_img, rotate)
                     arrow_right_rect.right = end_pos[0]
                     arrow_right_rect.centery = end_pos[1]
-                    arrow_right_rect.move_ip( -rotate * 2/7 if -rotate * 2/7 > -10 else -10, rotate * 1/7 if -rotate * 1/7 < 7 else 7)
+                    arrow_right_rect.move_ip( -rotate * 3/14 if -rotate * 3/14 > -10 else -10, 0)
                     arrow_rect = arrow_right_rect
                 elif dist_y > 0: # third quater
                     elipse_x = start_pos[0] - elipse_w
@@ -396,7 +399,6 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                 if elipse_h < 60:
                     elipse_h = 60
                 if dist_y < 0: # second quarter
-                    background.blit(mid_point, mid_point_rect)
                     elipse_x = start_pos[0] - 1/2 * elipse_w
                     elipse_y = start_pos[1] - elipse_h
                     if (end_pos[1]-mid_point_rect.y) == 0:
@@ -443,19 +445,18 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                     elipse_end_angle = math.pi * 1/2
 
                     arrow_img = arrow_down
-                    rotate = elipse_h/elipse_w * 5.5
+                    rotate = elipse_h/elipse_w * 7
+                    print(rotate)
                     if rotate > 80:
                         rotate = 80
                     arrow_img = pg.transform.rotate(arrow_img, -rotate)
                     arrow_down_rect.centerx = end_pos[0]
                     arrow_down_rect.bottom = end_pos[1]
-                    arrow_down_rect.move_ip( -rotate * 6/14 if -rotate * 6/14 > -3 else -3, -rotate * 1/7 if -rotate * 1/7 > -10 else -10)
+                    if end_pos[0] - start_pos[0] <20:
+                        arrow_down_rect.move_ip( -rotate * 5/14 if -rotate * 5/14 > -3 else -3 + (20 - (end_pos[0] - start_pos[0]))*0.5, -rotate * 1/7 if -rotate * 1/7 > -10 else -10)
+                    else:
+                        arrow_down_rect.move_ip( -rotate * 6/14 if -rotate * 6/14 > -3 else -3, -rotate * 1/7 if -rotate * 1/7 > -10 else -10)
                     arrow_rect = arrow_down_rect
-
-    # if elipse_w < 20:
-    #     elipse_w = 20
-    # if elipse_h < 20:
-    #     elipse_h = 20
 
     if end_pos[0] != start_pos[0] or end_pos[1] != start_pos[1]:
         pg.draw.arc(surf, arc_color, ( elipse_x, elipse_y, elipse_w, elipse_h), elipse_start_angle, elipse_end_angle, size if size < min(elipse_w, elipse_h) else 1)
@@ -484,6 +485,7 @@ def get_elipse_dimensions(start_pos, end_pos, mid_point_rect):
     elipse_h = 2*elipse_b
 
     return elipse_w, elipse_h
+
 
 class BPMN():
     def __init__(self, activities):
@@ -946,59 +948,107 @@ class BPMN():
         for row_num in range(0, len(self._board)):
             board_copy.append(self._board[row_num][:])
         for con_num in range(0, len(self._connections["from"])):
-            connections_copy["from"].append( self._connections["from"][:] )
-            connections_copy["to"].append( self._connections["to"][:] )
+            connections_copy["from"].append( self._connections["from"][con_num][:] )
+            connections_copy["to"].append( self._connections["to"][con_num][:] )
         
         self._board = [[None]]
         self._connections = { "from" : [],
                               "to" : []}
 
-        print(board_copy)
-        print(connections_copy)
-        print()
-        print(self._board)
-        print(self._connections)
+        # print(board_copy)
+        # print(connections_copy["from"])
+        # print(connections_copy["to"])
+        # print()
+        # print(self._board)
+        # print(self._connections)
 
-        # current_pos = [[0,0]]
-        # con_to1 = [] # possitions of elements that element on current pos is connected 
-        # con_to2 = [] # possitions of elements that element connected to element on current possition are connected
+        current_pos = [[0,0]]
+        current_pos_next = []
+        con_to1 = [] # possitions of elements that element on current pos is connected 
+        con_to2 = [] # possitions of elements that element connected to element on current possition are connected
 
-        # already_on = [] # list of all coordintaest from self._borad that are added into new_board
+        already_on = { "copy" : [],# "from" list of all coordintaest from board_copy that are added into self._board
+                        "real" : []}# "from" list of all coordintaest from self._board where are added elements from "from" pos
+        self.already_on = []
 
-        # col_counter = 0
+        col_counter = 0
+        row_counter = 0
 
-        # new_board[0][0] = self._board[current_pos[0][0]][current_pos[0][1]]
-        # already_on = [[0,0]]
+        self.add_elem_on_board(board_copy[current_pos[0][0]][current_pos[0][1]], [0,0] )
+        already_on["copy"].append([0,0])
+        already_on["real"].append([0,0])
 
-        # adjustment = True
-        # while adjustment:
-        #     for con_num0 in range(0, len(current_pos)):# go through all currently under consideration activities 
-        #         return_con = []
-        #         non_return_con = []
-        #         con_to1 = self.find_connections_from( current_pos[con_num0] ) # save all connections from current activity
-        #         for con_num1 in range(0, len(con_to1)): # go through all connections from current activity 
-        #             con_to2 = self.find_connections_from(con_to1) # save all connections from activity connected from current activity
-        #             comming_back = True # flag says if activity connected from current activity has connections going back in graph
-        #             for con_num2 in range(0, len(con_to2)): # go through all connections from activity connected from current activity
-        #                 if con_to2[con_num2] in already_on or con_to2[con_num2] in con_to1: # if connection is going back 
-        #                     return_con.append(con_to1[con_num1])
-        #                     comming_back = False
-        #                     break
-        #             if comming_back == True:
-        #                 non_return_con.append(con_to1[con_num1])
-        #         self.add_column()
-        #         for non_ret_num in range(0, len(non_return_con)):
-        #             if len(new_board) == non_ret_num:
-        #                 self.add_row()
-        #             new_board[non_ret_num][col_counter + 1] = self._board[non_return_con[non_ret_num][0]][non_return_con[non_ret_num][1]]
-        #             already_on.append(non_return_con[non_ret_num])
-
-
-        #         print(return_con, non_return_con)
-        #         adjustment = False
+        licznik = 0 # USUNAC !!!!!!!!!
+        adjustment = True
+        while adjustment:
+            return_con = { "from" : [], # from and to are possitions on board_copy
+                        "to" : []}
+            non_return_con = { "from" : [],# from and to are possitions on board_copy
+                        "to" : []}
+            for con_num0 in range(0, len(current_pos)):# go through all currently under consideration activities 
+                con_to1 = self.find_connections_from( current_pos[con_num0], connections_copy ) # save all connections from current activity
+                for con_num1 in range(0, len(con_to1)): # go through all connections from current activity 
+                    con_to2 = self.find_connections_from(con_to1[con_num1], connections_copy) # save all connections from activity connected from current activity
+                    comming_back = True # flag says if activity connected from current activity has connections going back in graph
+                    for con_num2 in range(0, len(con_to2)): # go through all connections from activity connected from current activity
+                        if con_to2[con_num2] in already_on["copy"] or con_to2[con_num2] in con_to1: # if connection is going back 
+                            return_con["from"].append(current_pos[con_num0])
+                            return_con["to"].append(con_to1[con_num1])
+                            comming_back = False
+                            break
+                    if comming_back == True:
+                        non_return_con["from"].append(current_pos[con_num0])
+                        non_return_con["to"].append(con_to1[con_num1])
+                    if (con_to1[con_num1] not in already_on["copy"]) and (con_to1[con_num1] not in current_pos_next):
+                        current_pos_next.append(con_to1[con_num1])
+                        
+            self.add_column()
+            row_counter = 0
+            for non_ret_num in range(0, len(non_return_con["to"])):
+                if len(self._board) == row_counter:
+                    self.add_row()
+                element_concerned_pos = current_pos.index(non_return_con["from"][non_ret_num]) # possition of concerned element in current_pos table
+                start_pos = already_on["real"][already_on["copy"].index(current_pos[element_concerned_pos])]
+                if non_return_con["to"][non_ret_num] not in already_on["copy"]:
+                    self.add_elem_on_board(board_copy[non_return_con["to"][non_ret_num][0]][non_return_con["to"][non_ret_num][1]], [row_counter, col_counter + 1])
+                    already_on["real"].append([row_counter, col_counter + 1])
+                    already_on["copy"].append(non_return_con["to"][non_ret_num])
+                    self.add_connection(start_pos, [row_counter, col_counter + 1])
+                    row_counter += 1
+                else:
+                    end_pos = already_on["real"][already_on["copy"].index(non_return_con["to"][non_ret_num])]
+                    self.add_connection(start_pos, end_pos)
                 
-       
+            for ret_num in range(0, len(return_con["to"])):
+                if len(self._board) == row_counter:
+                    self.add_row()
+                element_concerned_pos = current_pos.index(return_con["from"][ret_num]) # possition of concerned element in current_pos table
+                start_pos = already_on["real"][already_on["copy"].index(current_pos[element_concerned_pos])]
+                if return_con["to"][ret_num] not in already_on["copy"]:
+                    self.add_elem_on_board(board_copy[return_con["to"][ret_num][0]][return_con["to"][ret_num][1]], [row_counter, col_counter + 1])
+                    self.add_connection(start_pos, [row_counter, col_counter + 1])
+                    already_on["real"].append([row_counter, col_counter + 1])
+                    already_on["copy"].append(return_con["to"][ret_num])
+                    row_counter += 1
+                else:
+                    end_pos = already_on["real"][already_on["copy"].index(return_con["to"][ret_num])]
+                    self.add_connection(start_pos, end_pos)
 
+            current_pos = []
+            for pos_num in range(0, len(current_pos_next)):
+                current_pos.append(current_pos_next[pos_num])
+            current_pos_next = []
+
+            col_counter += 1
+            
+            if len(current_pos) == 0:
+                #if licznik == 4:
+                adjustment = False
+            else:
+                licznik+=1
+            
+        # print(self._board)
+        # print(self._connections)
 
     def run(self, TI, TO, YLa, YLb, YLc):
         self.create_start( TI )
@@ -1036,13 +1086,21 @@ class BPMN():
         else:
             self._board[where_pos[0]][where_pos[1]] = self._board[from_pos[0]][from_pos[1]]
             self._board[from_pos[0]][from_pos[1]] = None
-        for start_pos in self._connections["from"]:
-            if from_pos == start_pos: 
-                self._connections["from"][ self._connections["from"].index(start_pos)] = where_pos
-        for end_pos in self._connections["to"]:
-            if from_pos == end_pos: 
-                self._connections["to"][ self._connections["to"].index(end_pos)] = where_pos
-
+        
+        to_delete = []
+        for start_pos_num in range(0, len(self._connections["from"])):
+            if from_pos == self._connections["from"][start_pos_num]:
+                to_delete.append(start_pos_num)
+                self.add_connection(where_pos, self._connections["to"][start_pos_num])
+        for end_pos_num in range(0, len(self._connections["to"])):
+            if from_pos == self._connections["to"][end_pos_num]:
+                to_delete.append(end_pos_num)
+                self.add_connection(self._connections["from"][end_pos_num], where_pos)
+        to_delete.sort()
+        for i in range(0, len(to_delete)):
+            self._connections["from"] = self._connections["from"][0:to_delete[len(to_delete) - i - 1]] + self._connections["from"][to_delete[len(to_delete) - i - 1]+1:len(self._connections["from"])]
+            self._connections["to"] = self._connections["to"][0:to_delete[len(to_delete) - i - 1]] + self._connections["to"][to_delete[len(to_delete) - i - 1]+1:len(self._connections["to"])]
+        
     def move_all_right(self, start_col, how_much = 1):
         """moves all elements on board to the right starting from "start_width" column
 
@@ -1060,18 +1118,22 @@ class BPMN():
                 if self._board[row_num][col_num] == name:
                     return [row_num, col_num]
 
-    def find_connections_to(self, end_pos):
+    def find_connections_to(self, end_pos, connections = None):
+        if connections == None:
+            connections = self._connections
         connections_to = []
-        for con_num in range(0, len(self._connections["from"])):
-            if self._connections["to"][con_num] == end_pos:
-                connections_to.append( self._connections["from"][con_num] )
+        for con_num in range(0, len(connections["from"])):
+            if connections["to"][con_num] == end_pos:
+                connections_to.append( connections["from"][con_num] )
         return connections_to
 
-    def find_connections_from(self, start_pos):
+    def find_connections_from(self, start_pos, connections = None):
+        if connections == None:
+            connections = self._connections
         connections_from = []
-        for con_num in range(0, len(self._connections["to"])):
-            if self._connections["from"][con_num] == start_pos:
-                connections_from.append( self._connections["to"][con_num] )
+        for con_num in range(0, len(connections["to"])):
+            if connections["from"][con_num] == start_pos:
+                connections_from.append( connections["to"][con_num] )
         return connections_from
 
     def ele_pos(self, surf, pos_board):
@@ -1200,7 +1262,6 @@ class BPMN():
 
 
         #bliting connections
-        print(self._connections["from"])
         for connection_num in range(0, len(self._connections["from"]) ):
             move_start = [0,0]
             move_end = [0,0]
@@ -1235,8 +1296,9 @@ class BPMN():
                         move_start[1] -= 10
                     elif start_pos[1] < end_pos[1]:
                         move_start[0] += 20
-                elif start_pos[0] < end_pos[0]:
-                    pass
+                elif start_pos[0] == end_pos[0]:
+                    move_start[0] += 10
+                    move_start[1] += 10
                 elif start_pos[0] > end_pos[0]:
                     move_start[0] -= 10
                     move_start[1] += 10
@@ -1332,10 +1394,9 @@ class BPMN():
                         move_end[0] += end_surf_rect.width/4
                         move_end[1] += end_surf_rect.height/2
 
-            # if connection_num >= 24 and connection_num < 25:
-            #     print( start_pos[0] > end_pos[0], start_pos[1] < end_pos[1])
-                #print(f'poczatek: {start_pos}, przesuniecie poczatek: {move_start}, koniec: {end_pos}, przesuniecie koniec: {move_end}')
-                #print(f'poczatek: ({start_pos[0]+move_start[0]},{start_pos[1]+move_start[1]})   koniec: ({end_pos[0]+move_end[0]},{end_pos[1]+move_end[1]})')
+            # if connection_num >= 15 and connection_num < 22:
+            #     #print(f'poczatek: {start_pos}, przesuniecie poczatek: {move_start}, koniec: {end_pos}, przesuniecie koniec: {move_end}')
+            #     print(f'poczatek: ({start_pos[0]+move_start[0]},{start_pos[1]+move_start[1]})   koniec: ({end_pos[0]+move_end[0]},{end_pos[1]+move_end[1]})')
             #     draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (200,0,0) )
             # else:
             #     draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (0,200,0) )

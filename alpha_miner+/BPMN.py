@@ -239,6 +239,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                         #     if elipse_h/elipse_w > 0.26 - i*0.01 and elipse_h/elipse_w <= 0.26:
                         #         elipse_start_angle += (1.95 + 0.047*i) * (elipse_h/elipse_w)**(1/5)
                         #         break
+                        print(elipse_h/elipse_w)
                     elipse_end_angle = math.pi * 3/2
 
                     arrow_img = arrow_up
@@ -251,6 +252,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                         rotate =  elipse_w/elipse_h * 25
                     if rotate > 80:
                         rotate = 80
+                    #print(rotate,  elipse_w/elipse_h)
                     arrow_img = pg.transform.rotate(arrow_img, rotate)
                     arrow_up_rect.centerx = end_pos[0]
                     arrow_up_rect.top = end_pos[1]
@@ -444,6 +446,7 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
 
                     arrow_img = arrow_down
                     rotate = elipse_h/elipse_w * 7
+                    print(rotate)
                     if rotate > 80:
                         rotate = 80
                     arrow_img = pg.transform.rotate(arrow_img, -rotate)
@@ -952,6 +955,13 @@ class BPMN():
         self._connections = { "from" : [],
                               "to" : []}
 
+        # print(board_copy)
+        # print(connections_copy["from"])
+        # print(connections_copy["to"])
+        # print()
+        # print(self._board)
+        # print(self._connections)
+
         current_pos = [[0,0]]
         current_pos_next = []
         con_to1 = [] # possitions of elements that element on current pos is connected 
@@ -1036,6 +1046,9 @@ class BPMN():
                 adjustment = False
             else:
                 licznik+=1
+            
+        # print(self._board)
+        # print(self._connections)
 
     def run(self, TI, TO, YLa, YLb, YLc):
         self.create_start( TI )
@@ -1373,6 +1386,7 @@ class BPMN():
                 elif start_pos[0] > end_pos[0]:#end element is to the LEFT of the start element
                     if start_pos[1] < end_pos[1]:#end element is to the LEFT-DOWN of the start element
                         move_end[0] += end_surf_rect.width/2
+                        #move_end[1] -= end_surf_rect.height/2
                     elif start_pos[1] == end_pos[1]:#end element is to the LEFT-MID of the start element
                         move_end[0] += end_surf_rect.width*3/8
                         move_end[1] += end_surf_rect.height/2 + 2

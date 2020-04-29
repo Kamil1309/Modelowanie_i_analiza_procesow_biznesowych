@@ -239,7 +239,6 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                         #     if elipse_h/elipse_w > 0.26 - i*0.01 and elipse_h/elipse_w <= 0.26:
                         #         elipse_start_angle += (1.95 + 0.047*i) * (elipse_h/elipse_w)**(1/5)
                         #         break
-                        print(elipse_h/elipse_w)
                     elipse_end_angle = math.pi * 3/2
 
                     arrow_img = arrow_up
@@ -252,7 +251,6 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                         rotate =  elipse_w/elipse_h * 25
                     if rotate > 80:
                         rotate = 80
-                    #print(rotate,  elipse_w/elipse_h)
                     arrow_img = pg.transform.rotate(arrow_img, rotate)
                     arrow_up_rect.centerx = end_pos[0]
                     arrow_up_rect.top = end_pos[1]
@@ -405,6 +403,20 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
                         elipse_start_angle = math.pi*1/2 +  abs(math.atan(abs(end_pos[0]-mid_point_rect.x)/(end_pos[1]-mid_point_rect.y + 1)))
                     else:
                         elipse_start_angle = math.pi*1/2 +  abs(math.atan(abs(end_pos[0]-mid_point_rect.x)/(end_pos[1]-mid_point_rect.y)))
+                    
+                    for i in range(0, 20):# 1 - 1.2
+                        if elipse_h/elipse_w < 1.01 + i*0.01:
+                            elipse_start_angle += (0.00 + 0.005*i) * (elipse_h/elipse_w)**(1/5)
+                            break
+                    for i in range(0, 50):# 1.2 - 1.7
+                        if elipse_h/elipse_w < 1.21 + i*0.01 and elipse_h/elipse_w > 1.2:
+                            elipse_start_angle += (0.05 + 0.0045*i) * (elipse_h/elipse_w)**(1/5)
+                            break
+                    for i in range(0, 30):# 1.7 - 2
+                        if elipse_h/elipse_w < 1.71 + i*0.01 and elipse_h/elipse_w > 1.7:
+                            elipse_start_angle += (0.23 + 0.004*i) * (elipse_h/elipse_w)**(1/5)
+                            break
+
                     elipse_end_angle = math.pi * 3/2
 
                     arrow_img = arrow_up
@@ -446,7 +458,6 @@ def draw_arc( surf, start_pos, end_pos, *, arc_color= (72, 144, 220)):
 
                     arrow_img = arrow_down
                     rotate = elipse_h/elipse_w * 7
-                    print(rotate)
                     if rotate > 80:
                         rotate = 80
                     arrow_img = pg.transform.rotate(arrow_img, -rotate)
@@ -622,68 +633,69 @@ class BPMN():
                 move_about = 2
                 break
         #adding columns
-        self.add_column( move_about)
-        #moving all elements from "move_about" number of columns to the right
-        # for i in range(0, 2):
-        #     for row_num in range(0, self.height):
-        #         self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
-        self.move_all_right( 2, move_about )
-        #putting pattern a on board
-        for pat_num in range(0, len(YLa[0])):
-            if YLa[0][pat_num] in TI and YLa[1][pat_num] in TO:# if start activity and end activity is in pattern a
-                self.add_connection( self.find_in_board(YLa[0][pat_num]), self.find_in_board(YLa[1][pat_num]) )
+        if move_about > 0:
+            self.add_column( move_about)
+            #moving all elements from "move_about" number of columns to the right
+            # for i in range(0, 2):
+            #     for row_num in range(0, self.height):
+            #         self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
+            self.move_all_right( 2, move_about )
+            #putting pattern a on board
+            for pat_num in range(0, len(YLa[0])):
+                if YLa[0][pat_num] in TI and YLa[1][pat_num] in TO:# if start activity and end activity is in pattern a
+                    self.add_connection( self.find_in_board(YLa[0][pat_num]), self.find_in_board(YLa[1][pat_num]) )
 
-            elif YLa[0][pat_num] in TI:# if start activity is in pattern a
-                coord = self.find_in_board( YLa[0][pat_num] )
-                if YLa[1][pat_num] not in self.already_on:
-                    if self._board[ coord[0]][ coord[1] + 1] == None:
-                        self.add_elem_on_board( YLa[1][pat_num], [coord[0], coord[1] + 1] )
-                        self.add_connection( coord, [coord[0], coord[1] + 1] )
+                elif YLa[0][pat_num] in TI:# if start activity is in pattern a
+                    coord = self.find_in_board( YLa[0][pat_num] )
+                    if YLa[1][pat_num] not in self.already_on:
+                        if self._board[ coord[0]][ coord[1] + 1] == None:
+                            self.add_elem_on_board( YLa[1][pat_num], [coord[0], coord[1] + 1] )
+                            self.add_connection( coord, [coord[0], coord[1] + 1] )
+                        else:
+                            found = False
+                            for row_num in range(0, self.height): 
+                                if self._board[row_num][coord[1] + 1] == None:
+                                    found = True
+                                    self.add_elem_on_board( YLa[1][pat_num], [row_num, coord[1] + 1] )
+                                    self.add_connection( coord, [row_num, coord[1] + 1] )
+                                    break
+                            if found == False:
+                                self.add_row()
+                                self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, coord[1] + 1] )
+                                self.add_connection( coord, [self.height - 1, coord[1] + 1] )
+                    else:#if element is already on board
+                        self.add_connection( coord, self.find_in_board( YLa[1][pat_num]  ) )
+                    
+                elif YLa[1][pat_num] in TO:# if end activity is in pattern a
+                    coord = self.find_in_board( YLa[1][pat_num] )
+                    if YLa[0][pat_num] not in self.already_on:
+                        self.add_elem_on_board( YLa[0][pat_num], [coord[0], coord[1] - 1] )
+                        self.add_connection( [coord[0], coord[1] - 1], coord )
                     else:
-                        found = False
-                        for row_num in range(0, self.height): 
-                            if self._board[row_num][coord[1] + 1] == None:
+                        self.add_connection( self.find_in_board( YLa[0][pat_num]  ) , coord)
+
+            for pat_num in range(0, len(YLa[0])):
+                found = False
+                if YLa[0][pat_num] not in self.already_on and YLa[1][pat_num] not in self.already_on:
+                    if YLa[0][pat_num] not in TI and YLa[1][pat_num] not in TO:
+                        for row_num in range(0, self.height):
+                            if self._board[row_num][self.start_width] == None and self._board[row_num][self.start_width + 1] == None:
                                 found = True
-                                self.add_elem_on_board( YLa[1][pat_num], [row_num, coord[1] + 1] )
-                                self.add_connection( coord, [row_num, coord[1] + 1] )
+                                if YLa[0][pat_num] not in self.already_on:
+                                    self.add_elem_on_board( YLa[0][pat_num], [row_num, self.start_width] )
+                                if YLa[1][pat_num] not in self.already_on:
+                                    self.add_elem_on_board( YLa[1][pat_num], [row_num, self.start_width + 1] )
+                                self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
                                 break
                         if found == False:
                             self.add_row()
-                            self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, coord[1] + 1] )
-                            self.add_connection( coord, [self.height - 1, coord[1] + 1] )
-                else:#if element is already on board
-                    self.add_connection( coord, self.find_in_board( YLa[1][pat_num]  ) )
-                
-            elif YLa[1][pat_num] in TO:# if end activity is in pattern a
-                coord = self.find_in_board( YLa[1][pat_num] )
-                if YLa[0][pat_num] not in self.already_on:
-                    self.add_elem_on_board( YLa[0][pat_num], [coord[0], coord[1] - 1] )
-                    self.add_connection( [coord[0], coord[1] - 1], coord )
-                else:
-                    self.add_connection( self.find_in_board( YLa[0][pat_num]  ) , coord)
-
-        for pat_num in range(0, len(YLa[0])):
-            found = False
-            if YLa[0][pat_num] not in self.already_on and YLa[1][pat_num] not in self.already_on:
-                if YLa[0][pat_num] not in TI and YLa[1][pat_num] not in TO:
-                    for row_num in range(0, self.height):
-                        if self._board[row_num][self.start_width] == None and self._board[row_num][self.start_width + 1] == None:
-                            found = True
                             if YLa[0][pat_num] not in self.already_on:
-                                self.add_elem_on_board( YLa[0][pat_num], [row_num, self.start_width] )
+                                self.add_elem_on_board( YLa[0][pat_num], [self.height - 1, self.start_width] )
                             if YLa[1][pat_num] not in self.already_on:
-                                self.add_elem_on_board( YLa[1][pat_num], [row_num, self.start_width + 1] )
+                                self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, self.start_width + 1] )
                             self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
-                            break
-                    if found == False:
-                        self.add_row()
-                        if YLa[0][pat_num] not in self.already_on:
-                            self.add_elem_on_board( YLa[0][pat_num], [self.height - 1, self.start_width] )
-                        if YLa[1][pat_num] not in self.already_on:
-                            self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, self.start_width + 1] )
-                        self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
-            else:
-                self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
+                else:
+                    self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
 
     def create_patt_b(self, YLb):
         #create pattern b
@@ -740,7 +752,8 @@ class BPMN():
                     coord_0 = self.find_in_board( elem_0 )
                 else:
                     coord_0 = self.find_in_board( elem_1 )
-                # coord_0 is are cooridinates of element of YLb[1][pat_num] that is on board
+                    elem_1 = elem_0
+                # coord_0 are cooridinates of element of YLb[1][pat_num] that is on board
                 found = False
                 if self.height >= coord_0[0] + 2:
                     if self._board[ coord_0[0] + 1 ][ coord_0[1] ] == None:
@@ -940,6 +953,41 @@ class BPMN():
                                             merged = True
                                             break
 
+    def add_one_loop(self, F_L1L):
+        for one_loop_set in F_L1L:
+            start_pos = self.find_in_board(one_loop_set[1][0])
+            end_pos = self.find_in_board(one_loop_set[1][1])
+
+            mid_pos = [self.height - 1, start_pos[1] ]
+
+            #check if between start and end is exclusive
+            for con_num1 in range(0, len(self._connections["from"])):
+                exclusive_found = False
+                exclusive_end_found = False
+                if self._connections["from"][con_num1] == start_pos:
+                    if self._board[ self._connections["to"][con_num1][0]][ self._connections["to"][con_num1][1] ] == "exclusive":
+                        exc_pos = self._connections["to"][con_num1]
+                        exclusive_found = True
+                if exclusive_found == True:
+                    for con_num2 in range(0, len(self._connections["to"])):
+                        if self._connections["from"][con_num2] == exc_pos:
+                            if self._connections["to"][con_num2] == end_pos:
+                                exclusive_end_found = True
+                                break
+                if exclusive_end_found:
+                    break
+            
+            self.add_row()
+            if exclusive_end_found:
+                mid_pos = [self.height - 1, start_pos[1] ]
+
+                self.add_elem_on_board(one_loop_set[0][0], mid_pos)
+
+                self.add_connection(exc_pos, mid_pos)
+                self.add_connection(mid_pos, exc_pos)
+
+                    
+
     def organize(self):
         board_copy = []
         connections_copy = { "from" : [],
@@ -954,13 +1002,6 @@ class BPMN():
         self._board = [[None]]
         self._connections = { "from" : [],
                               "to" : []}
-
-        # print(board_copy)
-        # print(connections_copy["from"])
-        # print(connections_copy["to"])
-        # print()
-        # print(self._board)
-        # print(self._connections)
 
         current_pos = [[0,0]]
         current_pos_next = []
@@ -1046,11 +1087,8 @@ class BPMN():
                 adjustment = False
             else:
                 licznik+=1
-            
-        # print(self._board)
-        # print(self._connections)
 
-    def run(self, TI, TO, YLa, YLb, YLc):
+    def run(self, TI, TO, YLa, YLb, YLc, F_L1L):
         self.create_start( TI )
         self.create_end( TI, TO )
         self.create_patt_a( TI, TO, YLa )
@@ -1059,6 +1097,7 @@ class BPMN():
         self.create_patt_d()
         self.create_patt_e()
         self.merge_exclusive()
+        self.add_one_loop(F_L1L)
         self.organize()
     
         return self.width, self.height
@@ -1386,7 +1425,6 @@ class BPMN():
                 elif start_pos[0] > end_pos[0]:#end element is to the LEFT of the start element
                     if start_pos[1] < end_pos[1]:#end element is to the LEFT-DOWN of the start element
                         move_end[0] += end_surf_rect.width/2
-                        #move_end[1] -= end_surf_rect.height/2
                     elif start_pos[1] == end_pos[1]:#end element is to the LEFT-MID of the start element
                         move_end[0] += end_surf_rect.width*3/8
                         move_end[1] += end_surf_rect.height/2 + 2
@@ -1394,14 +1432,17 @@ class BPMN():
                         move_end[0] += end_surf_rect.width/4
                         move_end[1] += end_surf_rect.height/2
 
-            # if connection_num >= 15 and connection_num < 22:
+            # if connection_num >= 12 and connection_num < 13:
             #     #print(f'poczatek: {start_pos}, przesuniecie poczatek: {move_start}, koniec: {end_pos}, przesuniecie koniec: {move_end}')
             #     print(f'poczatek: ({start_pos[0]+move_start[0]},{start_pos[1]+move_start[1]})   koniec: ({end_pos[0]+move_end[0]},{end_pos[1]+move_end[1]})')
             #     draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (200,0,0) )
             # else:
             #     draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (0,200,0) )
-        
-            draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (200,0,0) )
-
+            
+            if connection_num%2 == 0:
+                draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (200,0,0) )
+            else:
+                draw_arc(surf, [start_pos[0] + move_start[0], start_pos[1] + move_start[1]], [end_pos[0] + move_end[0], end_pos[1] + move_end[1]], arc_color = (0,200,0) )
+            
         
         

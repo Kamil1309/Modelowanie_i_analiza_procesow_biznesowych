@@ -618,69 +618,70 @@ class BPMN():
             else:
                 move_about = 2
                 break
-        #adding columns
-        self.add_column( move_about)
-        #moving all elements from "move_about" number of columns to the right
-        # for i in range(0, 2):
-        #     for row_num in range(0, self.height):
-        #         self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
-        self.move_all_right( 2, move_about )
-        #putting pattern a on board
-        for pat_num in range(0, len(YLa[0])):
-            if YLa[0][pat_num] in TI and YLa[1][pat_num] in TO:# if start activity and end activity is in pattern a
-                self.add_connection( self.find_in_board(YLa[0][pat_num]), self.find_in_board(YLa[1][pat_num]) )
+        if move_about > 0:
+            #adding columns
+            self.add_column( move_about)
+            #moving all elements from "move_about" number of columns to the right
+            # for i in range(0, 2):
+            #     for row_num in range(0, self.height):
+            #         self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
+            self.move_all_right( 2, move_about )
+            #putting pattern a on board
+            for pat_num in range(0, len(YLa[0])):
+                if YLa[0][pat_num] in TI and YLa[1][pat_num] in TO:# if start activity and end activity is in pattern a
+                    self.add_connection( self.find_in_board(YLa[0][pat_num]), self.find_in_board(YLa[1][pat_num]) )
 
-            elif YLa[0][pat_num] in TI:# if start activity is in pattern a
-                coord = self.find_in_board( YLa[0][pat_num] )
-                if YLa[1][pat_num] not in self.already_on:
-                    if self._board[ coord[0]][ coord[1] + 1] == None:
-                        self.add_elem_on_board( YLa[1][pat_num], [coord[0], coord[1] + 1] )
-                        self.add_connection( coord, [coord[0], coord[1] + 1] )
+                elif YLa[0][pat_num] in TI:# if start activity is in pattern a
+                    coord = self.find_in_board( YLa[0][pat_num] )
+                    if YLa[1][pat_num] not in self.already_on:
+                        if self._board[ coord[0]][ coord[1] + 1] == None:
+                            self.add_elem_on_board( YLa[1][pat_num], [coord[0], coord[1] + 1] )
+                            self.add_connection( coord, [coord[0], coord[1] + 1] )
+                        else:
+                            found = False
+                            for row_num in range(0, self.height): 
+                                if self._board[row_num][coord[1] + 1] == None:
+                                    found = True
+                                    self.add_elem_on_board( YLa[1][pat_num], [row_num, coord[1] + 1] )
+                                    self.add_connection( coord, [row_num, coord[1] + 1] )
+                                    break
+                            if found == False:
+                                self.add_row()
+                                self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, coord[1] + 1] )
+                                self.add_connection( coord, [self.height - 1, coord[1] + 1] )
+                    else:#if element is already on board
+                        self.add_connection( coord, self.find_in_board( YLa[1][pat_num]  ) )
+                    
+                elif YLa[1][pat_num] in TO:# if end activity is in pattern a
+                    coord = self.find_in_board( YLa[1][pat_num] )
+                    if YLa[0][pat_num] not in self.already_on:
+                        self.add_elem_on_board( YLa[0][pat_num], [coord[0], coord[1] - 1] )
+                        self.add_connection( [coord[0], coord[1] - 1], coord )
                     else:
-                        found = False
-                        for row_num in range(0, self.height): 
-                            if self._board[row_num][coord[1] + 1] == None:
+                        self.add_connection( self.find_in_board( YLa[0][pat_num]  ) , coord)
+
+            for pat_num in range(0, len(YLa[0])):
+                found = False
+                if YLa[0][pat_num] not in self.already_on and YLa[1][pat_num] not in self.already_on:
+                    if YLa[0][pat_num] not in TI and YLa[1][pat_num] not in TO:
+                        for row_num in range(0, self.height):
+                            if self._board[row_num][self.start_width] == None and self._board[row_num][self.start_width + 1] == None:
                                 found = True
-                                self.add_elem_on_board( YLa[1][pat_num], [row_num, coord[1] + 1] )
-                                self.add_connection( coord, [row_num, coord[1] + 1] )
+                                if YLa[0][pat_num] not in self.already_on:
+                                    self.add_elem_on_board( YLa[0][pat_num], [row_num, self.start_width] )
+                                if YLa[1][pat_num] not in self.already_on:
+                                    self.add_elem_on_board( YLa[1][pat_num], [row_num, self.start_width + 1] )
+                                self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
                                 break
                         if found == False:
                             self.add_row()
-                            self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, coord[1] + 1] )
-                            self.add_connection( coord, [self.height - 1, coord[1] + 1] )
-                else:#if element is already on board
-                    self.add_connection( coord, self.find_in_board( YLa[1][pat_num]  ) )
-                
-            elif YLa[1][pat_num] in TO:# if end activity is in pattern a
-                coord = self.find_in_board( YLa[1][pat_num] )
-                if YLa[0][pat_num] not in self.already_on:
-                    self.add_elem_on_board( YLa[0][pat_num], [coord[0], coord[1] - 1] )
-                    self.add_connection( [coord[0], coord[1] - 1], coord )
-                else:
-                    self.add_connection( self.find_in_board( YLa[0][pat_num]  ) , coord)
-
-        for pat_num in range(0, len(YLa[0])):
-            found = False
-            if YLa[0][pat_num] not in self.already_on and YLa[1][pat_num] not in self.already_on:
-                if YLa[0][pat_num] not in TI and YLa[1][pat_num] not in TO:
-                    for row_num in range(0, self.height):
-                        if self._board[row_num][self.start_width] == None and self._board[row_num][self.start_width + 1] == None:
-                            found = True
                             if YLa[0][pat_num] not in self.already_on:
-                                self.add_elem_on_board( YLa[0][pat_num], [row_num, self.start_width] )
+                                self.add_elem_on_board( YLa[0][pat_num], [self.height - 1, self.start_width] )
                             if YLa[1][pat_num] not in self.already_on:
-                                self.add_elem_on_board( YLa[1][pat_num], [row_num, self.start_width + 1] )
+                                self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, self.start_width + 1] )
                             self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
-                            break
-                    if found == False:
-                        self.add_row()
-                        if YLa[0][pat_num] not in self.already_on:
-                            self.add_elem_on_board( YLa[0][pat_num], [self.height - 1, self.start_width] )
-                        if YLa[1][pat_num] not in self.already_on:
-                            self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, self.start_width + 1] )
-                        self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
-            else:
-                self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
+                else:
+                    self.add_connection( self.find_in_board( YLa[0][pat_num]  ), self.find_in_board( YLa[1][pat_num]  ) )
 
     def create_patt_b(self, YLb):
         #create pattern b

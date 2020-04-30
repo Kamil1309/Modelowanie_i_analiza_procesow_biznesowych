@@ -608,26 +608,26 @@ class BPMN():
         #create pattern a
         #checking how many fields separate the beginning and the end 
         move_about = 0
-        what_side = -1
+        which_side = -1
         for pat_num in range(0, len(YLa[0])):
             if YLa[0][pat_num] in TI and YLa[1][pat_num] in TO:
                 pass
             elif (YLa[0][pat_num] not in TI and YLa[1][pat_num] in TO) or (YLa[0][pat_num] in TI and YLa[1][pat_num] not in TO):
-                if what_side == -1:
+                if which_side == -1:
                     move_about = 1
                     if YLa[0][pat_num] in TI:
-                        what_side = 0
+                        which_side = 0
                     elif YLa[1][pat_num] in TO:
-                        what_side = 1
-                elif what_side == 0:
+                        which_side = 1
+                elif which_side == 0:
                     if YLa[1][pat_num] in TO:
                         move_about = 2
-                        what_side = 2
+                        which_side = 2
                         break
-                elif what_side == 1:
+                elif which_side == 1:
                     if YLa[0][pat_num] in TI :
                         move_about = 2
-                        what_side = 2
+                        which_side = 2
                         break
             else:
                 move_about = 2
@@ -635,10 +635,6 @@ class BPMN():
         #adding columns
         if move_about > 0:
             self.add_column( move_about)
-            #moving all elements from "move_about" number of columns to the right
-            # for i in range(0, 2):
-            #     for row_num in range(0, self.height):
-            #         self.move_elem( [row_num, self.width - 1 - i - move_about] , [row_num, self.width - 1 - i])
             self.move_all_right( 2, move_about )
             #putting pattern a on board
             for pat_num in range(0, len(YLa[0])):
@@ -647,7 +643,7 @@ class BPMN():
 
                 elif YLa[0][pat_num] in TI:# if start activity is in pattern a
                     coord = self.find_in_board( YLa[0][pat_num] )
-                    if YLa[1][pat_num] not in self.already_on:
+                    if YLa[1][pat_num] not in self.already_on:# if end activity not already on board
                         if self._board[ coord[0]][ coord[1] + 1] == None:
                             self.add_elem_on_board( YLa[1][pat_num], [coord[0], coord[1] + 1] )
                             self.add_connection( coord, [coord[0], coord[1] + 1] )
@@ -663,15 +659,28 @@ class BPMN():
                                 self.add_row()
                                 self.add_elem_on_board( YLa[1][pat_num], [self.height - 1, coord[1] + 1] )
                                 self.add_connection( coord, [self.height - 1, coord[1] + 1] )
-                    else:#if element is already on board
+                    else:#if end activity is already on board
                         self.add_connection( coord, self.find_in_board( YLa[1][pat_num]  ) )
                     
                 elif YLa[1][pat_num] in TO:# if end activity is in pattern a
                     coord = self.find_in_board( YLa[1][pat_num] )
-                    if YLa[0][pat_num] not in self.already_on:
-                        self.add_elem_on_board( YLa[0][pat_num], [coord[0], coord[1] - 1] )
-                        self.add_connection( [coord[0], coord[1] - 1], coord )
-                    else:
+                    if YLa[0][pat_num] not in self.already_on:# if start activity not already on board
+                        if self._board[ coord[0]][ coord[1] - 1] == None:
+                            self.add_elem_on_board( YLa[0][pat_num], [coord[0], coord[1] - 1] )
+                            self.add_connection( [coord[0], coord[1] - 1], coord )
+                        else:
+                            found = False
+                            for row_num in range(0, self.height): 
+                                if self._board[row_num][coord[1] -1 ] == None:
+                                    found = True
+                                    self.add_elem_on_board( YLa[0][pat_num], [row_num, coord[1] - 1] )
+                                    self.add_connection( [row_num, coord[1] - 1], coord)
+                                    break
+                            if found == False:
+                                self.add_row()
+                                self.add_elem_on_board( YLa[0][pat_num], [self.height - 1, coord[1] - 1] )
+                                self.add_connection( [self.height - 1, coord[1] - 1], coord)
+                    else:# if start activity is already on board
                         self.add_connection( self.find_in_board( YLa[0][pat_num]  ) , coord)
 
             for pat_num in range(0, len(YLa[0])):

@@ -660,12 +660,12 @@ class BPMN():
                                 if self._board[row_num][coord[1] -1 ] == None:
                                     found = True
                                     self.add_elem_on_board( YLa[0][pat_num], [row_num, coord[1] - 1] )
-                                    self.add_connection( coord, [row_num, coord[1] - 1] )
+                                    self.add_connection( [row_num, coord[1] - 1], coord)
                                     break
                             if found == False:
                                 self.add_row()
                                 self.add_elem_on_board( YLa[0][pat_num], [self.height - 1, coord[1] - 1] )
-                                self.add_connection( coord, [self.height - 1, coord[1] - 1] )
+                                self.add_connection( [self.height - 1, coord[1] - 1], coord)
                     else:# if start activity is already on board
                         self.add_connection( self.find_in_board( YLa[0][pat_num]  ) , coord)
 
